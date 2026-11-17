@@ -53,7 +53,7 @@ Du lädst einen oder mehrere **Pläne** oder ein **3D-/BIM-Modell** (IFC, OBJ, g
 | Symbole | **Feine Liniensymbole** im Stil einer Planzeichnung (Wand, Dach, Fenster, Sonne, Heizung …) |
 | PDF-Bericht | **A4 hoch, mit Schriftfeld** (Projekt, Verfasser/in, Datum, Hochschule; du trägst die Angaben selbst ein) |
 | Intro | **„Greenprint wird gezeichnet“**: Ein Haus entsteht als grüner Bauplan, füllt sich, Blatt-Logo, Schriftzug und Unterzeile erscheinen (ca. 5 s, weicher Übergang). Einmal pro Browser-Tab, überspringbar. |
-| Mauszeiger | **Fußabdruck**: weiß mit waldgrünem Rand, beim Klicken waldgrün gefüllt, feste Ausrichtung. Beim Bewegen entsteht alle 50 Bildpunkte eine waldgrüne **Fußspur** (abwechselnd links/rechts, in Laufrichtung gedreht, max. 5, verblassend). In Textfeldern bleibt der Text-Cursor. |
+| Mauszeiger | **Fußabdruck**: weiß mit waldgrünem Rand, beim Klicken waldgrün gefüllt, feste Ausrichtung. Beim Bewegen entsteht alle 50 Bildpunkte eine waldgrüne **Fußspur** (abwechselnd links/rechts, in Laufrichtung gedreht, max. 5, verblassend). In Textfeldern bleibt der Text-Cursor. Ein kleiner Reiter mit Zeiger-Symbol direkt unter dem Chat-Reiter schaltet auf den normalen Mauszeiger um (und zurück); die Wahl wird im Browser gemerkt. |
 | Ladesymbol | runder Ring in Salbei mit waldgrünem Bogen, abgerundeter Fortschrittsbalken |
 
 ### 2.3 Inhalt

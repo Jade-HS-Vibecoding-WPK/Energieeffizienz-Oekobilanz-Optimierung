@@ -184,6 +184,29 @@
   }
 
 
+  // ---------- Mauszeiger: Fußabdruck oder normaler Zeiger (Wahl wird im Browser gemerkt) ----------
+  App.plainCursor = (() => { try { return localStorage.getItem('gp_plain_cursor') === '1'; } catch (e) { return false; } })();
+  document.documentElement.classList.toggle('plain-cursor', App.plainCursor);
+  function cursorTabHtml() {
+    const en = I.lang === 'en';
+    const label = App.plainCursor ? (en ? 'Footprint cursor' : 'Fußabdruck-Zeiger') : (en ? 'Normal cursor' : 'Normaler Zeiger');
+    const ico = App.plainCursor
+      ? `<svg width="16" height="16" viewBox="0 0 32 32" aria-hidden="true"><g fill="currentColor"><path d="M15.2 12.4c-3 .4-4.6 2.9-4.3 6 .2 2.1 1.3 3.5 1.2 5.6-.1 3.2.7 6 3.8 6.1 3.2.1 4.6-2.6 4.4-5.9-.1-1.9-.9-3.2-.4-5.1.6-2.3 1.4-3.6.9-5.2-.6-1.8-2.9-1.8-5.6-1.5z"/><ellipse cx="12.5" cy="7.4" rx="2.95" ry="3.35"/><circle cx="17.2" cy="5.7" r="2.25"/><circle cx="20.7" cy="6.8" r="1.95"/><circle cx="23.2" cy="9.1" r="1.65"/><circle cx="24.5" cy="12.1" r="1.4"/></g></svg>`
+      : `<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3l14 7.5-6 1.6L10 18z" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>`;
+    return `<button class="cursor-tab" data-act="cursorToggle" aria-pressed="${App.plainCursor}" aria-label="${label}" title="${label}">${ico}</button>`;
+  }
+
+  // Zeiger-Reiter immer 10 px unter den Chat-Reiter setzen (Höhe hängt von der Sprache ab)
+  function placeCursorTab() {
+    const ct = document.querySelector('.chat-tab'), cu = document.querySelector('.cursor-tab');
+    if (!ct || !cu) return;
+    const r = ct.getBoundingClientRect();
+    if (r.height) { App.cursorTabTop = r.bottom + 10; }
+    if (App.cursorTabTop) cu.style.top = App.cursorTabTop + 'px';
+  }
+  window.addEventListener('resize', () => { App.cursorTabTop = 0; placeCursorTab(); });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => placeCursorTab());
+
   // ---------- Projekt-Chat: Reiter am rechten Rand + aufklappbares Fenster (auf jeder Seite) ----------
   function renderChat() {
     let dock = $('#chatDock');
@@ -200,8 +223,10 @@
       <aside class="chat-panel" id="chatPanel" role="dialog" aria-label="${esc(t('chatTitle'))}" ${App.chatOpen ? '' : 'hidden'}>
         <div class="chat-head"><h3>${icon('chat')} ${t('chatTitle')}</h3><button class="iconbtn" data-act="chatToggle" aria-label="${t('close')}">${icon('x', 18)}</button></div>
         ${body}
-      </aside>`;
+      </aside>
+      ${cursorTabHtml()}`;
     const box = $('#chatMsgs'); if (box) box.scrollTop = box.scrollHeight;
+    placeCursorTab();
   }
 
   // ---------- Schritt 1 ----------
@@ -1082,6 +1107,14 @@
     delVariant: el => { const i = +el.dataset.i; if (App.variants.length <= 1) return; App.variants.splice(i, 1); App.active = Math.min(App.active, App.variants.length - 1); render(); },
     exportPdf: () => doExport('pdf'), exportXlsx: () => doExport('xlsx'), exportGuid: () => doExport('guid'),
     aiSettings: () => openAiSettings(),
+    cursorToggle: () => {
+      App.plainCursor = !App.plainCursor;
+      document.documentElement.classList.toggle('plain-cursor', App.plainCursor);
+      try { localStorage.setItem('gp_plain_cursor', App.plainCursor ? '1' : '0'); } catch (e) { /* ohne Speicher nur für diese Sitzung */ }
+      document.querySelectorAll('.foot-step').forEach(el => el.remove());
+      renderChat();
+      const tb = document.querySelector('.cursor-tab'); if (tb) tb.focus();
+    },
     chatToggle: () => { App.chatOpen = !App.chatOpen; renderChat(); if (App.chatOpen) { const i = $('#chatIn'); if (i) i.focus(); } else { const tb = document.querySelector('.chat-tab'); if (tb) tb.focus(); } },
     orSave: () => {
       const v = orFormValues();
@@ -1226,6 +1259,7 @@
     let last = null, left = false;
     window.addEventListener('pointermove', e => {
       if (e.pointerType && e.pointerType !== 'mouse') return;
+      if (App.plainCursor) { last = null; return; } // normaler Zeiger: keine Fußspur
       const p = { x: e.clientX, y: e.clientY };
       if (!last) { last = p; return; }
       const dx = p.x - last.x, dy = p.y - last.y;
