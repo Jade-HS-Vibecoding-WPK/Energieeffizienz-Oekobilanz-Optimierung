@@ -1,6 +1,6 @@
 # Umsetzungsplan: Web-App „Ökobilanz-Check“
 
-Stand: 16.11.2026 · Status: **Alle Fragen geklärt, wartet auf Startfreigabe**
+Stand: 17.11.2026 · Status: **Umgesetzt (Version 1)** – App unter https://claude.ai/artifact/YChJDwMuERSuFfqSoLoAUg, Code in `app/`
 
 Dieser Plan beschreibt in einfachen Worten, was die Web-App können soll, wie sie aussieht, wie sie rechnet und in welchen Schritten sie gebaut wird. Programmiert wird erst nach der Freigabe.
 
