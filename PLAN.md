@@ -1,6 +1,6 @@
 # Umsetzungsplan: Web-App „Greenprint“
 
-Stand: 17.11.2026 · Status: **Umgesetzt (Version 1)** – App unter https://claude.ai/artifact/YChJDwMuERSuFfqSoLoAUg, Code in `app/`
+Stand: 17.11.2026 (zuletzt aktualisiert) · Status: **Umgesetzt** – App unter https://claude.ai/artifact/YChJDwMuERSuFfqSoLoAUg, Code in `app/`
 
 Dieser Plan beschreibt in einfachen Worten, was die Web-App können soll, wie sie aussieht, wie sie rechnet und in welchen Schritten sie gebaut wird. Programmiert wird erst nach der Freigabe.
 
@@ -30,7 +30,8 @@ Du lädst einen oder mehrere **Pläne** oder ein **3D-/BIM-Modell** (IFC, OBJ, g
 | Wie werden die Pläne gelesen? | **KI + Formular**: Die KI liest die Pläne und schlägt Werte vor, du prüfst und korrigierst sie, dann rechnet die App. |
 | KI-Stufe | **Stärkste Stufe** (am genauesten, eine Analyse dauert ca. 1 bis 3 Minuten) |
 | Wo läuft die App? | **Online-Link auf claude.ai** (privat, die KI läuft über dein Claude-Konto, kein API-Schlüssel nötig). Eine Kopie liegt im lokalen Ordner. |
-| GitHub | **Nur auf ausdrücklichen Wunsch.** PLAN.md wurde am 16.11.2026 hochgeladen. Die App-Dateien bleiben lokal, bis du etwas anderes sagst. |
+| GitHub | **Nur auf ausdrücklichen Wunsch.** Bisher hochgeladen: PLAN.md (16.11.2026) und die App mit den Commits „Herkunft entfernt“, „Titel geändert“ und „Curser angepasst“ (17.11.2026). |
+| KI-Anbieter | **claude.ai (eingebaut)** in der Online-Version oder **OpenRouter mit eigenem API-Key** in der lokalen Version (App-lokal-starten.bat). Genutzt werden die **kostenlosen OpenRouter-Modelle** (Gemma 4, mit Ausweichmodellen bei Überlastung). Der Key liegt nur im Browser. Auf claude.ai sind Verbindungen zu OpenRouter gesperrt. |
 | Sprache | **Deutsch + Englisch**, umschaltbar |
 | Zielgruppe | **Studierende**: Fachbegriffe werden erklärt (Fragezeichen-Symbol und Glossar), die Rechenwege sind fürs Lernen aufbereitet. |
 
@@ -38,11 +39,11 @@ Du lädst einen oder mehrere **Pläne** oder ein **3D-/BIM-Modell** (IFC, OBJ, g
 
 | Thema | Entscheidung |
 |---|---|
-| Name | **Greenprint** (bis 17.11.2026 „Ökobilanz-Check“), Unterzeile „Energieeffizienz und Ökobilanz für deine Projektplanung“ |
+| Name | **Greenprint** (bis 17.11.2026 „Ökobilanz-Check“), Unterzeile „Energieeffizienz und Ökobilanz für deine Projektplanung“. Kopfzeile: Logo links, Titel oben, darunter in einer Zeile Unterzeile, Projekt/Variante und Knöpfe bis „+ Neues Projekt“ |
 | Akzentfarbe | **Waldgrün** |
 | Schrift | **Nunito** für die ganze App (Überschriften, Texte, Zahlen) |
 | Hintergrund | **Grauer Grund** (leicht grünlich abgestimmt), Kacheln heller darauf |
-| Aufbau | **Schritt-für-Schritt-Assistent** mit Fortschrittsleiste in Pillenform (Schritte ① bis ⑤), Zurückspringen jederzeit möglich |
+| Aufbau | **Schritt-für-Schritt-Assistent** mit Fortschrittsleiste in Pillenform, 6 Reiter: ① Projekt & Pläne, ② Auslesen, ③ Werte prüfen, ④ Ergebnis, ⑤ Optimierungsvorschläge (mit Vorher/Nachher), ⑥ Varianten. Zurückspringen jederzeit möglich. „Standort im europäischen Vergleich“ und „Annahmen & Quellen“ stehen nicht mehr auf der Ergebnisseite (Quellen über die Fußzeile). |
 | Ergebnisseite | **Bento-Grid:** Kacheln in unterschiedlichen Größen auf einem 12-Spalten-Raster |
 | Hingucker | Große waldgrüne Kachel mit der **Endenergie als große Zahl** und der **Effizienzklasse** |
 | Formensprache | **Große Rundungen** (Kacheln 28 px, Karten 20 px, Knöpfe pillenförmig), weiche Flächen statt Linien |
@@ -51,6 +52,9 @@ Du lädst einen oder mehrere **Pläne** oder ein **3D-/BIM-Modell** (IFC, OBJ, g
 | Effizienzskala | **Klassisch bunt** (Grün → Gelb → Rot), wie auf dem Energieausweis |
 | Symbole | **Feine Liniensymbole** im Stil einer Planzeichnung (Wand, Dach, Fenster, Sonne, Heizung …) |
 | PDF-Bericht | **A4 hoch, mit Schriftfeld** (Projekt, Verfasser/in, Datum, Hochschule; du trägst die Angaben selbst ein) |
+| Intro | **„Greenprint wird gezeichnet“**: Ein Haus entsteht als grüner Bauplan, füllt sich, Blatt-Logo, Schriftzug und Unterzeile erscheinen (ca. 5 s, weicher Übergang). Einmal pro Browser-Tab, überspringbar. |
+| Mauszeiger | **Fußabdruck**: weiß mit waldgrünem Rand, beim Klicken waldgrün gefüllt, feste Ausrichtung. Beim Bewegen entsteht alle 50 Bildpunkte eine waldgrüne **Fußspur** (abwechselnd links/rechts, in Laufrichtung gedreht, max. 5, verblassend). In Textfeldern bleibt der Text-Cursor. |
+| Ladesymbol | runder Ring in Salbei mit waldgrünem Bogen, abgerundeter Fortschrittsbalken |
 
 ### 2.3 Inhalt
 
@@ -76,7 +80,8 @@ Du lädst einen oder mehrere **Pläne** oder ein **3D-/BIM-Modell** (IFC, OBJ, g
 | Varianten | **Bis zu 3 Varianten** (A, B, C) nebeneinander |
 | Speichern | **Projektdatei**: Alle Werte und Varianten werden als kleine Datei auf deinem Rechner gespeichert, ohne die Pläne. Später kannst du sie wieder öffnen. |
 | Export | **PDF-Bericht + Excel-Tabelle** |
-| Projekt-Chat | **Ja**: Unter dem Ergebnis gibt es ein Fragefeld, und die KI kennt alle Werte deines Projekts. |
+| Projekt-Chat | **Ja**, als **Reiter am rechten Bildschirmrand** auf jeder Seite (am Handy unten rechts). Ein Klick öffnet ein Chat-Fenster, die KI kennt die aktuellen Werte deines Projekts. |
+| KI-Einstellungen | über die **KI-Statuszeile in der Fußzeile** (bzw. „KI einrichten“, wenn keine KI aktiv ist) |
 
 ### 2.5 3D- und BIM-Modelle
 
@@ -129,13 +134,17 @@ Oben zeigt eine Fortschrittsleiste den aktuellen Schritt. Mit einem Klick auf ei
 - **Klimadaten** sind vom Standort vorausgefüllt und lassen sich überschreiben.
 - **Bei einem Modell** steht neben dem Formular die 3D-Ansicht. Klickst du eine Zeile im Formular an, leuchten die zugehörigen Bauteile im Modell auf, und umgekehrt.
 
-### ④ Ergebnis & Vorschläge
-- Kennzahlen, Diagramme, Zielwertvergleich, Rechenweg und Vorschläge (Details in den Abschnitten 4 bis 7).
-- Jeden Vorschlag kannst du anhaken. Der **Vorher/Nachher-Vergleich** rechnet sofort neu.
-- **Projekt-Chat** unter dem Ergebnis, z. B. „Was würde Lehm statt Kalksandstein bringen?“
-- Knöpfe: **PDF-Bericht**, **Excel-Tabelle**, **Variante anlegen**.
+### ④ Ergebnis
+- Kennzahlen, Diagramme, Zielwertvergleich und Rechenweg als Bento-Grid (Details in Abschnitt 7).
+- Knöpfe oben rechts: **PDF-Bericht**, **Excel-Tabelle**, ggf. **Maßnahmenliste (GUIDs)**, **Variante anlegen**.
 
-### ⑤ Varianten vergleichen
+### ⑤ Optimierungsvorschläge
+- Oben: **Vorher/Nachher** (Effizienzklasse, Anzahl Maßnahmen, Kosten) und **Wirkung der Maßnahmen** (drei Vergleichsdiagramme).
+- Darunter alle Vorschläge zum Anhaken, nach Gruppe eingefärbt. Der Vergleich rechnet sofort neu.
+
+**Projekt-Chat:** auf jeder Seite über den Reiter „Frag zu deinem Projekt“ am rechten Rand, z. B. „Was würde Lehm statt Kalksandstein bringen?“
+
+### ⑥ Varianten vergleichen
 - Mit „Variante anlegen“ kopierst du das aktuelle Projekt. Danach änderst du einzelne Werte oder lädst neue Pläne für die Variante hoch.
 - Es gibt bis zu 3 Varianten (A, B, C) mit eigenen Namen, z. B. „A – Massivbau“ und „B – Holzhybrid“.
 - Die Vergleichsansicht zeigt eine Tabelle und Diagramme nebeneinander, die beste Variante je Kennzahl ist hervorgehoben.
@@ -310,7 +319,7 @@ Fehlende Angaben ergänzt du in Schritt ③. Bei sehr großen Modellen werden nu
 
 ## 6. Projekt-Chat
 
-- Unter dem Ergebnis gibt es ein Fragefeld: „Frag zu deinem Projekt …“
+- Auf jeder Seite gibt es am rechten Rand den Reiter „Frag zu deinem Projekt“ (am Handy unten rechts). Ein Klick öffnet ein Chat-Fenster über der Seite, „×“ oder Esc schließt es.
 - Die KI bekommt alle Werte, Ergebnisse und Vorschläge des Projekts mitgeschickt (die Pläne nicht noch einmal, um Kontingent zu sparen) und antwortet in der gewählten Sprache.
 - Beispielfragen als Knöpfe: „Was bringt Holzbau?“, „Welche Maßnahme lohnt sich zuerst?“, „Erklär mir den U-Wert der Außenwand“.
 - Der Chat-Verlauf bleibt, solange die App geöffnet ist. Er wird nicht in der Projektdatei gespeichert.
@@ -333,11 +342,10 @@ Die Ergebnisseite ist ein **Bento-Grid**: Kacheln in unterschiedlichen Größen 
 | Kreislauf | Note A–E je Bauteil | Tabelle mit Balken |
 | Sommer & Komfort | Überhitzungsrisiko, Tageslicht | Ampeln |
 | Solar, Grün & Wasser | PV- und Solarthermie-Ertrag, Gründach-Potenzial | Kennzahlen |
-| Standort | Klimawerte im Vergleich zum europäischen Mittel | Vergleichsleiste |
-| Vorschläge | vier Gruppen mit Wirkung, Kosten, Amortisation, € pro t CO₂, Erklärung, zum Anhaken | Karten |
-| Vorher/Nachher | Energie und CO₂ im Ist-Zustand und optimiert | gegenübergestellte Balken |
-| Varianten | bis zu 3 Varianten | Tabelle und gruppierte Balken |
-| Rechenweg & Annahmen | Formeln, Kennwerte, Quellen | aufklappbar |
+| Vorschläge (Reiter ⑤) | vier Gruppen mit Wirkung, Kosten, Amortisation, € pro t CO₂, Erklärung, zum Anhaken | Karten |
+| Vorher/Nachher (Reiter ⑤) | Energie und CO₂ im Ist-Zustand und optimiert | Zusammenfassung und gegenübergestellte Balken |
+| Varianten (Reiter ⑥) | bis zu 3 Varianten | Tabelle und gruppierte Balken |
+| Rechenweg | Formeln mit eingesetzten Zahlen | aufklappbar; Annahmen & Quellen über die Fußzeile |
 | Pläne | deine hochgeladenen Pläne | Vorschaubilder |
 | 3D-Modell | farbige Auswertung, Bauteil-Infos, Vorschläge und Varianten am Modell | interaktive 3D-Ansicht mit Legende |
 
@@ -363,6 +371,11 @@ Stand 17.11.2026: Der ursprüngliche Stil (eckig, feine Linien, Space Grotesk/In
 - **Formen:** große Rundungen: Kacheln 28 px, Karten 20 px, Eingabefelder 12 px, Knöpfe, Schrittleiste und Kennzeichen pillenförmig. Weiche Flächen statt Rahmenlinien.
 - **Bento-Grid:** Auf der Ergebnisseite sind die Kacheln unterschiedlich groß (z. B. 5, 7 oder 12 von 12 Spalten). Die Hingucker-Kachel steht oben links. Auf dem Handy stapeln sich alle Kacheln untereinander.
 - **Symbole:** feine Liniensymbole, selbst gezeichnet.
+- **Kopfzeile:** großes Logo, Titel „Greenprint“ bündig mit der Logo-Oberkante, darunter in einer Zeile Unterzeile (Grundlinie bündig mit der Logo-Unterkante), Projekt/Variante, DE/EN, Projekt öffnen/speichern und der hervorgehobene Knopf „+ Neues Projekt“.
+- **Fußzeile:** Hinweis zur Genauigkeit, Glossar, Annahmen & Quellen und die KI-Statuszeile (klickbar → KI-Einstellungen).
+- **Intro:** „Greenprint wird gezeichnet“ auf zartem Plan-Raster, einmal pro Browser-Tab, überspringbar; bei „Bewegung reduzieren“ nur kurz das fertige Bild.
+- **Mauszeiger und Fußspur:** siehe Tabelle in 2.2; auf Handy/Tablet ohne Wirkung, die Spur entfällt bei „Bewegung reduzieren“.
+- **Ladesymbol:** runder Ring (Salbei/Waldgrün), in grünen Knöpfen weiß; Fortschrittsbalken abgerundet und sanft animiert.
 - **Handy:** Die App funktioniert auch auf dem Smartphone. Spalten stapeln sich dann untereinander.
 - **PDF-Bericht:** A4 hoch. Auf jeder Seite unten rechts steht ein **Schriftfeld** mit Projekt, Verfasser/in, Datum, Hochschule und Seitenzahl. Inhalt:
   1. Deckblatt mit Kennzahlen
@@ -383,7 +396,7 @@ Stand 17.11.2026: Der ursprüngliche Stil (eckig, feine Linien, Space Grotesk/In
 Du musst hier nichts selbst tun. Dieser Abschnitt erklärt nur, woraus die App besteht.
 
 - **Eine HTML-Datei:** Gestaltung (CSS) und Logik (JavaScript) stecken mit in dieser Datei.
-- **KI:** Die App nutzt die eingebaute Claude-Funktion von claude.ai (stärkste Stufe, mit Bildern) für das Planlesen, die Erklärung der Vorschläge und den Chat.
+- **KI:** online die eingebaute Claude-Funktion von claude.ai (stärkste Stufe, mit Bildern), lokal OpenRouter mit eigenem Key (`ai-openrouter.js`, kostenlose Modelle mit automatischen Ausweichmodellen und Wiederholung bei Überlastung). Genutzt für Planlesen, Erklärungen der Vorschläge und den Chat.
 - **Zusatzbausteine (Bibliotheken),** die aus einer freigegebenen Quelle geladen werden:
   - *pdf.js* wandelt PDF-Pläne in Bilder um.
   - *jsPDF* erzeugt den PDF-Bericht.
@@ -392,17 +405,23 @@ Du musst hier nichts selbst tun. Dieser Abschnitt erklärt nur, woraus die App b
   - *web-ifc* liest IFC-Dateien. Es braucht eine Zusatzdatei (`web-ifc.wasm`, ein schneller Programmbaustein), die zusammen mit der App veröffentlicht wird.
   - *Tailwind CSS* (3.4.17) übernimmt Raster, Abstände und Schrift des Bento-Designs. Der Teil, der alle vorhandenen Stile zurücksetzt („Preflight“), ist abgeschaltet, damit Formulare und Tabellen ihre eigenen Stile behalten.
 - **Speichern und Herunterladen:** Über die Download-Funktion von claude.ai, die vor jedem Speichern kurz nachfragt. Das gilt für den PDF-Bericht, die Excel-Tabelle und die Projektdatei (`.json`). Eine Projektdatei öffnest du über eine normale Dateiauswahl.
-- **Diagramme und Symbole** werden direkt in der App gezeichnet und funktionieren im hellen und im dunklen Modus.
+- **Diagramme und Symbole** werden direkt in der App gezeichnet. Die App ist immer hell.
 - **Zweisprachig:** Alle Texte liegen auf Deutsch und Englisch vor. Die KI antwortet in der gewählten Sprache.
 - **Datenschutz:** Pläne werden nicht gespeichert, sie gehen nur zur Analyse an Claude. Die Projektdatei enthält nur Zahlen und Texte und liegt bei dir.
-- **Ablage im lokalen Ordner** (nicht auf GitHub):
+- **Ablage** (lokal und auf GitHub):
   ```
   Energieeffizienz-Oekobilanz-Optimierung/
-  ├── PLAN.md          ← dieser Plan
-  ├── README.md        ← wird um eine Kurzanleitung und den Link ergänzt
+  ├── PLAN.md                ← dieser Plan
+  ├── README.md              ← Kurzanleitung und Link
+  ├── App-lokal-starten.bat  ← startet die lokale Version (localhost:8765)
   └── app/
-      ├── index.html   ← die Web-App
-      └── web-ifc.wasm ← Baustein zum Lesen von IFC-Dateien
+      ├── index.html         ← Seite, Gestaltung, Intro, Mauszeiger
+      ├── main.js            ← Oberfläche (Reiter, Formulare, Ergebnis, Chat, Fußspur)
+      ├── calc.js, data.js   ← Rechenkern und Daten
+      ├── i18n.js, charts.js ← Texte DE/EN, Diagramme
+      ├── ai.js, ai-openrouter.js ← KI-Anfragen (claude.ai / OpenRouter)
+      ├── viewer.js, export.js    ← 3D/BIM, PDF/Excel
+      └── web-ifc.wasm       ← Baustein zum Lesen von IFC-Dateien
   ```
 
 ---
@@ -414,7 +433,7 @@ Du musst hier nichts selbst tun. Dieser Abschnitt erklärt nur, woraus die App b
 | 1 | Plan schreiben und abstimmen | diese Datei ✔ |
 | 2 | **Daten:** Materialliste (CO₂, PENRT, Dichte, Wärmeleitfähigkeit, Nutzungsdauer, Kreislauf, Kosten), Bauteilkatalog, Klima- und Länderdaten für Europa, Zielwerte | Datentabellen in der App |
 | 3 | **Rechenkern:** Energie (Heizen, Kühlen, Warmwasser, PV), Ökobilanz, Bestandslogik, Sommerschutz, Kosten und Amortisation | Rechenfunktionen, an Beispielhäusern in Nord-, Mittel- und Südeuropa überprüft |
-| 4 | **Oberfläche:** Assistent ① bis ⑤, Formulare, eigene Schichten, Gestaltung, Symbole, DE/EN | App mit Beispielprojekt |
+| 4 | **Oberfläche:** Assistent ① bis ⑥, Formulare, eigene Schichten, Gestaltung, Symbole, DE/EN | App mit Beispielprojekt |
 | 5 | **Ergebnisseite:** Kennzahlen, Diagramme, Zielwerte, Vorschläge, Vorher/Nachher, Rechenweg, Glossar | vollständige Auswertung |
 | 6 | **KI:** Pläne lesen, Vorschläge erklären, Projekt-Chat | App liest echte Pläne |
 | 6a | **3D/BIM:** IFC- und OBJ/glTF-Import, Bauteilerkennung, 3D-Ansicht, farbige Auswertung, Anklicken & Ändern, Vorschläge und Varianten am Modell | App liest Modelle |

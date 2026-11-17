@@ -62,7 +62,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .lang button[aria-pressed="true"] { background: var(--fg); color: var(--bg); }
 
 /* Schritte */
-nav.steps { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); border: 1px solid var(--line-strong); border-top: 0; background: var(--panel); margin-bottom: 22px; }
+nav.steps { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); border: 1px solid var(--line-strong); border-top: 0; background: var(--panel); margin-bottom: 22px; }
 nav.steps button { border: 0; border-right: 1px solid var(--line); background: transparent; color: var(--muted); text-align: left; padding: 10px 12px; cursor: pointer; font: 500 var(--fs-s) var(--font-body); display: flex; gap: 8px; align-items: center; min-width: 0; }
 nav.steps button:last-child { border-right: 0; }
 nav.steps .n { font-family: var(--font-display); font-weight: 700; width: 22px; height: 22px; border: 1px solid currentColor; display: grid; place-items: center; flex: none; font-size: 0.75rem; }
@@ -145,6 +145,41 @@ tr.sel td { background: var(--accent-soft); }
 
 /* Kennzeichen */
 .f > .badge { align-self: flex-start; }
+/* Feldbeschriftung mit Symbol oder Fragezeichen in einer Zeile, damit Felder bündig bleiben */
+.flbl { display: inline-flex; align-items: center; gap: 6px; flex-wrap: nowrap; }
+[hidden] { display: none !important; }
+/* Projekt-Chat: Reiter am rechten Rand, Fenster fährt von rechts heraus */
+.chat-tab { position: fixed; right: env(safe-area-inset-right, 0px); top: 30%; transform: translateY(-50%); z-index: 40;
+  writing-mode: vertical-rl; display: inline-flex; align-items: center; gap: 8px; padding: 16px 10px; border: 0; border-radius: 18px 0 0 18px;
+  background: var(--accent); color: var(--accent-ink); font: 800 0.88rem var(--font-body); cursor: pointer; box-shadow: -6px 8px 22px -12px var(--accent); }
+.chat-tab .ico { transform: rotate(90deg); }
+.chat-tab:hover { padding-right: 14px; filter: brightness(1.1); }
+.chat-tab:focus-visible { outline: 3px solid var(--t-sage); outline-offset: 2px; }
+.chat-count { writing-mode: horizontal-tb; background: var(--accent-ink); color: var(--accent); border-radius: 999px; font-size: 0.7rem; min-width: 20px; height: 20px; display: grid; place-items: center; }
+.chat-panel { position: fixed; z-index: 45; top: calc(env(safe-area-inset-top, 0px) + 16px); bottom: calc(env(safe-area-inset-bottom, 0px) + 16px); right: calc(env(safe-area-inset-right, 0px) + 16px);
+  width: min(430px, calc(100vw - 32px)); background: var(--panel); border-radius: var(--r-tile); box-shadow: 0 24px 60px -20px rgb(20 50 35 / 0.45), 0 0 0 1px var(--line);
+  display: flex; flex-direction: column; gap: 12px; padding: 18px; animation: chatIn 0.22s ease-out; }
+@keyframes chatIn { from { transform: translateX(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .chat-panel { animation: none; } }
+.chat-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.chat-head h3 { color: var(--accent); display: flex; gap: 8px; align-items: center; font-size: var(--fs-l); }
+.chat-msgs { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 4px 2px; min-height: 0; }
+.chat-msgs .msg { max-width: 92%; }
+.chat-quick { display: flex; flex-wrap: wrap; gap: 6px; }
+@media (max-width: 620px) {
+  .chat-tab { top: auto; bottom: calc(env(safe-area-inset-bottom, 0px) + 16px); transform: none; writing-mode: horizontal-tb; border-radius: 999px; right: calc(env(safe-area-inset-right, 0px) + 16px); padding: 12px 16px; }
+  .chat-tab .ico { transform: none; }
+  .chat-panel { top: auto; height: min(78vh, 640px); left: calc(env(safe-area-inset-left, 0px) + 8px); right: calc(env(safe-area-inset-right, 0px) + 8px); bottom: calc(env(safe-area-inset-bottom, 0px) + 8px); width: auto; }
+}
+/* KI-Status in der Fußzeile */
+footer .ai-status { display: inline-flex; align-items: center; gap: 7px; margin-top: 6px; border: 0; background: transparent; padding: 2px 0; color: var(--muted); font: inherit; font-size: var(--fs-xs); cursor: pointer; text-align: left; }
+footer .ai-status:hover { color: var(--accent); }
+footer .ai-status .dot { width: 8px; height: 8px; border-radius: 999px; flex: none; }
+/* Hinweistexte in Karten dürfen die volle Kartenbreite nutzen */
+.card > p.small { max-width: none; }
+/* Umschalter in Formularen: nicht über die ganze Breite ziehen, beide Hälften gleich breit */
+.f > .seg { align-self: flex-start; display: inline-grid; grid-auto-flow: column; grid-auto-columns: 1fr; }
+.f > .seg button { text-align: center; }
 .badge { display: inline-flex; align-items: center; gap: 4px; font-size: var(--fs-xs); padding: 1px 6px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
 .badge.niedrig { border-color: var(--bad); color: var(--bad); } .badge.mittel { border-color: var(--warn); color: var(--warn); } .badge.hoch { border-color: var(--good); color: var(--good); }
 .chip { display: inline-flex; font-size: var(--fs-xs); padding: 1px 7px; background: var(--panel2); border: 1px solid var(--line); color: var(--fg); white-space: nowrap; }
@@ -196,11 +231,16 @@ tr.sel td { background: var(--accent-soft); }
 /* Fortschritt */
 .progress { display: flex; flex-direction: column; gap: 8px; }
 .progress .line { display: flex; gap: 10px; align-items: center; font-size: var(--fs-s); }
-.spinner { width: 14px; height: 14px; border: 2px solid var(--line); border-top-color: var(--accent); animation: spin 0.9s linear infinite; flex: none; }
+/* Ladesymbol im Bento-Stil: runder Ring in Salbei mit waldgrünem Bogen */
+.spinner { width: 16px; height: 16px; border-radius: 50%; border: 2.5px solid var(--t-sage); border-top-color: var(--accent); border-right-color: var(--accent); animation: spin 0.8s cubic-bezier(.55, .15, .45, .85) infinite; flex: none; display: inline-block; vertical-align: -3px; }
+.btn.primary .spinner, .chat-tab .spinner { border-color: rgb(255 255 255 / 0.35); border-top-color: #fff; border-right-color: #fff; }
+.fileitem .ph .spinner { width: 20px; height: 20px; border-width: 3px; }
 @keyframes spin { to { transform: rotate(360deg); } }
-@media (prefers-reduced-motion: reduce) { .spinner { animation: none; } }
-.bar { height: 4px; background: var(--line); position: relative; overflow: hidden; }
-.bar i { position: absolute; inset: 0 auto 0 0; background: var(--accent); }
+/* Fortschrittsbalken: abgerundet, sanft hin und her laufend */
+.bar { height: 8px; border-radius: 999px; background: var(--t-mint); position: relative; overflow: hidden; }
+.bar i { position: absolute; top: 0; bottom: 0; left: 0; width: 35%; border-radius: 999px; background: linear-gradient(90deg, var(--c2), var(--accent)); animation: barslide 1.6s ease-in-out infinite; }
+@keyframes barslide { 0% { transform: translateX(-100%); } 100% { transform: translateX(290%); } }
+@media (prefers-reduced-motion: reduce) { .spinner { animation: none; border-color: var(--accent); } .bar i { animation: none; width: 100%; opacity: 0.6; } }
 
 details { border: 1px solid var(--line); background: var(--panel); }
 details > summary { cursor: pointer; padding: 9px 12px; font-weight: 600; font-size: var(--fs-s); list-style: none; display: flex; gap: 8px; align-items: center; }
@@ -325,25 +365,120 @@ th { background: var(--t-mint); color: var(--accent); }
 .target-row { border-bottom-color: rgb(31 90 61 / 0.15); }
 .brand .sub { color: var(--accent); opacity: 0.8; }
 
-/* ===== Kopfzeile: Logo hervorheben, Rest zurücknehmen ===== */
-header.titleblock { grid-template-columns: minmax(0, 1.5fr) minmax(0, 0.9fr) auto; align-items: center; }
-.brand { gap: 16px; padding-block: 16px; }
-.brand-mark { width: 58px; height: 58px; border-radius: 18px; box-shadow: 0 10px 22px -12px var(--accent); }
-.brand h1 { font-size: clamp(1.7rem, 2.6vw, 2.2rem); line-height: 1.05; letter-spacing: -0.02em; color: var(--fg); }
-.brand .sub { font-size: 0.95rem; font-weight: 600; margin-top: 2px; }
+/* ===== Kopfzeile: Logo links, Titel oben, darunter eine Zeile mit Unterzeile, Projekt und Knöpfen ===== */
+header.titleblock { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: 18px; padding: 16px 22px; }
+/* Logo so hoch wie Titel-Oberkante bis Grundlinie der Unterzeile */
+header.titleblock .brand-mark { width: 63px; height: 63px; border-radius: 19px; box-shadow: 0 10px 22px -12px var(--accent); }
+header.titleblock .brand-mark .ico { width: 32px; height: 32px; }
+.hb-main { min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+/* Oberkante des Schriftzugs bündig mit der Oberkante des Logos (Ausgleich des Schrift-Innenabstands) */
+.hb-title { font-size: clamp(1.7rem, 2.6vw, 2.2rem); line-height: 1; margin-top: var(--cap-shift, -0.075em); letter-spacing: -0.02em; color: var(--fg); font-weight: 900; }
+.hb-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 16px; min-width: 0; }
+.hb-row .sub { font-size: 0.95rem; font-weight: 600; color: var(--accent); opacity: 0.85; }
+.wrap { max-width: 1400px; }
+header.titleblock .tb-project { flex-direction: column; gap: 0; padding: 0 0 0 16px; border-left: 1px solid var(--line); border-right: 0; min-width: 0; max-width: 260px; }
+header.titleblock .tb-project .v { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+header.titleblock .tb-actions { gap: 5px; flex-wrap: nowrap; }
+@media (max-width: 1300px) { header.titleblock .tb-actions { flex-wrap: wrap; } }
 .tb-project .label { font-size: 0.68rem; }
 .tb-project .v { font-size: 0.88rem; font-weight: 600; }
+header.titleblock .tb-actions { margin-left: auto; padding: 0; border: 0; }
 .tb-actions .btn.small, .tb-actions .lang button { font-size: 0.72rem; padding: 4px 9px; }
 .tb-actions .btn.small .ico { width: 12px; height: 12px; }
 .tb-actions .btn.newproj { font-size: 0.9rem; padding: 9px 18px; font-weight: 800; box-shadow: 0 8px 20px -8px var(--accent); }
 .tb-actions .btn.newproj:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 12px 24px -10px var(--accent); filter: brightness(1.1); }
 @media (prefers-reduced-motion: reduce) { .tb-actions .btn.newproj:hover:not(:disabled) { transform: none; } }
-@media (max-width: 1150px) { header.titleblock { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); } }
-@media (max-width: 620px) { header.titleblock { grid-template-columns: 1fr; } .brand-mark { width: 48px; height: 48px; } }
+@media (max-width: 1150px) { header.titleblock { grid-template-columns: auto minmax(0, 1fr); } header.titleblock .tb-actions { grid-column: auto; border-top: 0; } }
+@media (max-width: 620px) {
+  header.titleblock { grid-template-columns: auto minmax(0, 1fr); padding: 14px; gap: 12px; align-items: start; }
+  header.titleblock .brand-mark { width: 48px; height: 48px; }
+  header.titleblock .tb-project { border-left: 0; padding-left: 0; }
+  header.titleblock .tb-actions { margin-left: 0; }
+}
+
+/* ===== Mauszeiger: Fußabdruck – weiß mit waldgrünem Rand, beim Klicken/Gedrückthalten waldgrün gefüllt; feste Ausrichtung (nur die Fußspur dreht sich).
+   Zielpunkt = vorn an den Zehen. In Textfeldern bleibt der Text-Cursor. ===== */
+:root { --cursor-step: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cg transform='rotate%280 16 16%29' stroke-linejoin='round'%3E%3Cg fill='none' stroke='none' stroke-width='2.6'%3E%3Cpath d='M15.2 12.4c-3 .4-4.6 2.9-4.3 6 .2 2.1 1.3 3.5 1.2 5.6-.1 3.2.7 6 3.8 6.1 3.2.1 4.6-2.6 4.4-5.9-.1-1.9-.9-3.2-.4-5.1.6-2.3 1.4-3.6.9-5.2-.6-1.8-2.9-1.8-5.6-1.5z'/%3E%3Cellipse cx='12.5' cy='7.4' rx='2.95' ry='3.35'/%3E%3Ccircle cx='17.2' cy='5.7' r='2.25'/%3E%3Ccircle cx='20.7' cy='6.8' r='1.95'/%3E%3Ccircle cx='23.2' cy='9.1' r='1.65'/%3E%3Ccircle cx='24.5' cy='12.1' r='1.4'/%3E%3C/g%3E%3Cg fill='%231f5a3d' stroke='%231f5a3d' stroke-width='0.9'%3E%3Cpath d='M15.2 12.4c-3 .4-4.6 2.9-4.3 6 .2 2.1 1.3 3.5 1.2 5.6-.1 3.2.7 6 3.8 6.1 3.2.1 4.6-2.6 4.4-5.9-.1-1.9-.9-3.2-.4-5.1.6-2.3 1.4-3.6.9-5.2-.6-1.8-2.9-1.8-5.6-1.5z'/%3E%3Cellipse cx='12.5' cy='7.4' rx='2.95' ry='3.35'/%3E%3Ccircle cx='17.2' cy='5.7' r='2.25'/%3E%3Ccircle cx='20.7' cy='6.8' r='1.95'/%3E%3Ccircle cx='23.2' cy='9.1' r='1.65'/%3E%3Ccircle cx='24.5' cy='12.1' r='1.4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); --cursor-foot: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cg transform='rotate%28-20 16 16%29' stroke-linejoin='round'%3E%3Cg fill='%23ffffff' stroke='%23ffffff' stroke-width='2.6'%3E%3Cpath d='M15.2 12.4c-3 .4-4.6 2.9-4.3 6 .2 2.1 1.3 3.5 1.2 5.6-.1 3.2.7 6 3.8 6.1 3.2.1 4.6-2.6 4.4-5.9-.1-1.9-.9-3.2-.4-5.1.6-2.3 1.4-3.6.9-5.2-.6-1.8-2.9-1.8-5.6-1.5z'/%3E%3Cellipse cx='12.5' cy='7.4' rx='2.95' ry='3.35'/%3E%3Ccircle cx='17.2' cy='5.7' r='2.25'/%3E%3Ccircle cx='20.7' cy='6.8' r='1.95'/%3E%3Ccircle cx='23.2' cy='9.1' r='1.65'/%3E%3Ccircle cx='24.5' cy='12.1' r='1.4'/%3E%3C/g%3E%3Cg fill='%23ffffff' stroke='%231f5a3d' stroke-width='0.9'%3E%3Cpath d='M15.2 12.4c-3 .4-4.6 2.9-4.3 6 .2 2.1 1.3 3.5 1.2 5.6-.1 3.2.7 6 3.8 6.1 3.2.1 4.6-2.6 4.4-5.9-.1-1.9-.9-3.2-.4-5.1.6-2.3 1.4-3.6.9-5.2-.6-1.8-2.9-1.8-5.6-1.5z'/%3E%3Cellipse cx='12.5' cy='7.4' rx='2.95' ry='3.35'/%3E%3Ccircle cx='17.2' cy='5.7' r='2.25'/%3E%3Ccircle cx='20.7' cy='6.8' r='1.95'/%3E%3Ccircle cx='23.2' cy='9.1' r='1.65'/%3E%3Ccircle cx='24.5' cy='12.1' r='1.4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") 11 5, auto; --cursor-foot-down: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cg transform='rotate%28-20 16 16%29' stroke-linejoin='round'%3E%3Cg fill='%23ffffff' stroke='%23ffffff' stroke-width='2.6'%3E%3Cpath d='M15.2 12.4c-3 .4-4.6 2.9-4.3 6 .2 2.1 1.3 3.5 1.2 5.6-.1 3.2.7 6 3.8 6.1 3.2.1 4.6-2.6 4.4-5.9-.1-1.9-.9-3.2-.4-5.1.6-2.3 1.4-3.6.9-5.2-.6-1.8-2.9-1.8-5.6-1.5z'/%3E%3Cellipse cx='12.5' cy='7.4' rx='2.95' ry='3.35'/%3E%3Ccircle cx='17.2' cy='5.7' r='2.25'/%3E%3Ccircle cx='20.7' cy='6.8' r='1.95'/%3E%3Ccircle cx='23.2' cy='9.1' r='1.65'/%3E%3Ccircle cx='24.5' cy='12.1' r='1.4'/%3E%3C/g%3E%3Cg fill='%231f5a3d' stroke='%23123b27' stroke-width='0.9'%3E%3Cpath d='M15.2 12.4c-3 .4-4.6 2.9-4.3 6 .2 2.1 1.3 3.5 1.2 5.6-.1 3.2.7 6 3.8 6.1 3.2.1 4.6-2.6 4.4-5.9-.1-1.9-.9-3.2-.4-5.1.6-2.3 1.4-3.6.9-5.2-.6-1.8-2.9-1.8-5.6-1.5z'/%3E%3Cellipse cx='12.5' cy='7.4' rx='2.95' ry='3.35'/%3E%3Ccircle cx='17.2' cy='5.7' r='2.25'/%3E%3Ccircle cx='20.7' cy='6.8' r='1.95'/%3E%3Ccircle cx='23.2' cy='9.1' r='1.65'/%3E%3Ccircle cx='24.5' cy='12.1' r='1.4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") 11 5, auto; }
+html, body, * { cursor: var(--cursor-foot) !important; }
+html:active, html:active * { cursor: var(--cursor-foot-down) !important; }
+input[type="text"], input[type="number"], input[type="password"], textarea { cursor: text !important; }
+
+/* Fußspur hinter dem Mauszeiger: kleine waldgrüne Abdrücke, die verblassen */
+.foot-step { position: fixed; left: 0; top: 0; width: 22px; height: 22px; margin: -11px 0 0 -11px; pointer-events: none; z-index: 9999;
+  background: var(--cursor-step) center / contain no-repeat; opacity: 0; animation: footFade 1.2s ease-out forwards; }
+@keyframes footFade { 0% { opacity: 0.7; } 55% { opacity: 0.4; } 100% { opacity: 0; } }
+
+/* ===== Intro „Greenprint wird gezeichnet“ (einmal pro Sitzung) ===== */
+#intro { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; cursor: pointer;
+  background-color: var(--bg);
+  background-image: linear-gradient(rgb(31 90 61 / 0.07) 1px, transparent 1px), linear-gradient(90deg, rgb(31 90 61 / 0.07) 1px, transparent 1px);
+  background-size: 28px 28px; background-position: center; transition: opacity 0.9s cubic-bezier(.4, 0, .2, 1), visibility 0.9s; }
+#intro.out { opacity: 0; visibility: hidden; }
+.intro-stage { transition: transform 0.9s cubic-bezier(.4, 0, .2, 1), filter 0.9s ease; }
+#intro.out .intro-stage { transform: scale(1.06) translateY(-8px); filter: blur(3px); }
+.intro-stage { display: flex; flex-direction: column; align-items: center; gap: 18px; padding: 24px; text-align: center; }
+.intro-house { width: min(300px, 70vw); height: auto; overflow: visible; }
+.intro-house .ln { fill: none; stroke: var(--accent); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 1; animation: introDraw 0.95s cubic-bezier(.45, 0, .25, 1) forwards; }
+.intro-house .dim { stroke-width: 1.2; opacity: 0.6; }
+.intro-house .inner { animation: introDraw 0.95s cubic-bezier(.45, 0, .25, 1) forwards, introLight 0.6s ease-out 1.8s forwards; }
+@keyframes introLight { to { stroke: rgb(255 255 255 / 0.6); } }
+.intro-house .fill { fill: var(--accent); opacity: 0; animation: introFade 0.7s ease-out 1.7s forwards; }
+.intro-house .leaf { fill: none; stroke: #fff; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; opacity: 0; transform-origin: 110px 98px; transform: scale(0.4); animation: introPop 0.6s cubic-bezier(.3, 1.45, .5, 1) 2.15s forwards; }
+.intro-word { font-family: var(--font-display); font-weight: 900; font-size: clamp(2.4rem, 7vw, 4rem); letter-spacing: -0.03em; color: var(--fg); line-height: 1; opacity: 0; transform: translateY(10px); animation: introUp 0.7s ease-out 2.5s forwards; }
+.intro-sub { font-weight: 700; color: var(--accent); font-size: clamp(0.95rem, 2.2vw, 1.15rem); opacity: 0; animation: introUp 0.7s ease-out 2.9s forwards; }
+.intro-skip { position: absolute; right: calc(env(safe-area-inset-right, 0px) + 20px); bottom: calc(env(safe-area-inset-bottom, 0px) + 20px); border: 0; border-radius: 999px; padding: 8px 14px;
+  background: var(--t-mint); color: var(--accent); font: 700 0.85rem var(--font-body); cursor: pointer; }
+.intro-skip:hover { background: var(--t-sage); }
+@keyframes introDraw { to { stroke-dashoffset: 0; } }
+@keyframes introFade { to { opacity: 1; } }
+@keyframes introPop { to { opacity: 1; transform: scale(1); } }
+@keyframes introUp { to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .intro-house .ln, .intro-house .fill, .intro-house .leaf, .intro-word, .intro-sub { animation: none; opacity: 1; stroke-dashoffset: 0; transform: none; }
+  #intro, .intro-stage { transition: none; } #intro.out .intro-stage { transform: none; filter: none; }
+}
 </style>
 
+<div id="intro" role="dialog" aria-label="Greenprint">
+  <div class="intro-stage">
+    <svg class="intro-house" viewBox="0 0 220 170" aria-hidden="true">
+      <!-- Hausfläche (füllt sich nach dem Zeichnen) -->
+      <path class="fill" d="M50 140 V84 L110 34 L170 84 V140 Z"/>
+      <!-- Bauplan-Linien, nacheinander gezeichnet -->
+      <path class="ln" pathLength="1" style="animation-delay:0s" d="M14 140 H206"/>
+      <path class="ln" pathLength="1" style="animation-delay:0.2s" d="M50 140 V84 M170 140 V84"/>
+      <path class="ln" pathLength="1" style="animation-delay:0.5s" d="M38 92 L110 30 L182 92"/>
+      <path class="ln inner" pathLength="1" style="animation-delay:0.85s, 1.8s" d="M64 100 h22 v18 h-22 Z M134 100 h22 v18 h-22 Z"/>
+      <path class="ln inner" pathLength="1" style="animation-delay:1.05s, 1.8s" d="M100 140 V116 h20 V140"/>
+      <path class="ln dim" pathLength="1" style="animation-delay:1.25s" d="M50 156 H170 M50 151 v10 M170 151 v10"/>
+      <!-- Blatt-Logo -->
+      <path class="leaf" d="M96 108 c0-16 10-26 28-26 c0 16-10 26-28 26 M96 108 l14-14"/>
+    </svg>
+    <div class="intro-word">Greenprint</div>
+    <div class="intro-sub" id="introSub">Energieeffizienz und Ökobilanz für deine Projektplanung</div>
+  </div>
+  <button class="intro-skip" id="introSkip" type="button">Überspringen</button>
+</div>
+<script>
+  // Intro einmal pro Sitzung; ohne Sitzungsspeicher (z. B. Vorschaubild) gar nicht zeigen
+  (function () {
+    var el = document.getElementById('intro'); if (!el) return;
+    var seen = true, lang = 'de';
+    try { seen = sessionStorage.getItem('gp_intro_seen') === '1'; if (!seen) sessionStorage.setItem('gp_intro_seen', '1'); } catch (e) { seen = true; }
+    try { lang = localStorage.getItem('obc_lang') === 'en' ? 'en' : 'de'; } catch (e) { /* */ }
+    if (seen) { el.remove(); return; }
+    if (lang === 'en') { document.getElementById('introSub').textContent = 'Energy efficiency and life cycle assessment for your project planning'; document.getElementById('introSkip').textContent = 'Skip'; }
+    var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var done = false;
+    function finish() { if (done) return; done = true; el.classList.add('out'); setTimeout(function () { el.remove(); }, reduce ? 0 : 950); }
+    setTimeout(finish, reduce ? 1200 : 4400);
+    el.addEventListener('click', finish);
+    document.addEventListener('keydown', function onKey() { finish(); document.removeEventListener('keydown', onKey); });
+  })();
+</script>
+
 <div class="wrap" id="app">
-  <header class="titleblock"><div class="tb-cell brand"><div class="brand-mark">◧</div><div><h1>Greenprint</h1><div class="sub">Energieeffizienz und Ökobilanz für deine Projektplanung</div></div></div><div class="tb-cell tb-project"><span class="label">Projekt</span><span class="v">Beispiel: Mehrfamilienhaus</span></div><div class="tb-cell tb-actions"></div></header>
+  <header class="titleblock"><div class="brand-mark">◧</div><div class="hb-main"><h1 class="hb-title">Greenprint</h1><div class="hb-row"><div class="sub">Energieeffizienz und Ökobilanz für deine Projektplanung</div></div></div></header>
   <nav class="steps" aria-label="Schritte"></nav>
   <main id="main"><p class="muted">Die App wird geladen …</p></main>
   <footer id="footer"></footer>

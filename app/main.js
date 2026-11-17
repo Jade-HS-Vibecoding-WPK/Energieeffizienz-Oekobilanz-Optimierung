@@ -146,36 +146,62 @@
 
   // ---------- Rendern ----------
   function render() {
-    renderHeader(); renderSteps(); renderMain(); renderFooter();
+    renderHeader(); renderSteps(); renderMain(); renderFooter(); renderChat();
     afterRender();
   }
   function renderHeader() {
     const h = $('header.titleblock');
     const st = cur();
+    // Aufbau: Logo links; rechts oben der Titel, darunter in einer Zeile Unterzeile, Projekt und Knöpfe
     h.innerHTML = `
-      <div class="tb-cell brand"><div class="brand-mark">${icon('leaf', 30)}</div><div><h1>${t('appName')}</h1><div class="sub">${t('tagline')}</div></div></div>
-      <div class="tb-cell tb-project"><span class="label">${t('project')} · ${t('variant')} ${esc(st.name)}</span><span class="v">${esc(App.meta.project || (st.example ? t('loadExample') : '–'))}</span></div>
-      <div class="tb-cell tb-actions">
+      <div class="brand-mark">${icon('leaf', 30)}</div>
+      <div class="hb-main"><h1 class="hb-title">${t('appName')}</h1>
+      <div class="hb-row">
+      <div class="sub">${t('tagline')}</div>
+      <div class="tb-project"><span class="label">${t('project')} · ${t('variant')} ${esc(st.name)}</span><span class="v">${esc(App.meta.project || (st.example ? t('loadExample') : '–'))}</span></div>
+      <div class="tb-actions">
         <div class="lang" role="group" aria-label="Sprache / Language"><button data-act="lang" data-v="de" aria-pressed="${I.lang === 'de'}">DE</button><button data-act="lang" data-v="en" aria-pressed="${I.lang === 'en'}">EN</button></div>
-        <button class="btn small" data-act="aiSettings" title="${esc(aiStatusText())}"><span class="dot" style="background:${aiProvider() ? 'var(--good)' : 'var(--grey)'}"></span>${t('aiSettings')}</button>
         <button class="btn small" data-act="openProject">${icon('file', 14)}${t('openProject')}</button>
         <button class="btn small" data-act="saveProject">${icon('download', 14)}${t('saveProject')}</button>
         <button class="btn primary newproj" data-act="newProject">${icon('plus', 16)}${t('newProject')}</button>
         <input type="file" id="projFile" accept=".json,application/json" hidden>
-      </div>`;
+      </div></div></div>`;
   }
   function hasElements() { return cur().elements.length > 0; }
   function renderSteps() {
     const n = $('nav.steps');
-    const can = [true, !!(App.plans.length || App.modelFile || App.progress), true, hasElements(), hasElements()];
-    n.innerHTML = [1, 2, 3, 4, 5].map(i => `<button data-act="step" data-v="${i}" ${App.step === i ? 'aria-current="step"' : ''} class="${i < App.step ? 'done' : ''}" ${can[i - 1] ? '' : 'disabled'}><span class="n">${i}</span><span class="t">${t('step' + i)}</span></button>`).join('');
+    const can = [true, !!(App.plans.length || App.modelFile || App.progress), true, hasElements(), hasElements(), hasElements()];
+    n.innerHTML = [1, 2, 3, 4, 5, 6].map(i => `<button data-act="step" data-v="${i}" ${App.step === i ? 'aria-current="step"' : ''} class="${i < App.step ? 'done' : ''}" ${can[i - 1] ? '' : 'disabled'}><span class="n">${i}</span><span class="t">${t('step' + i)}</span></button>`).join('');
   }
   function renderFooter() {
-    $('#footer').innerHTML = `<div class="row" style="justify-content:space-between"><span>${t('disclaimer')}</span><span class="row"><button class="btn small ghost" data-act="glossary">${t('glossary')}</button><button class="btn small ghost" data-act="sources">${t('assumptions')}</button></span></div>`;
+    // Fußzeile: Hinweis, KI-Status (klickbar → KI-Einstellungen), Glossar und Quellen
+    $('#footer').innerHTML = `<div class="row" style="justify-content:space-between"><span>${t('disclaimer')}</span><span class="row"><button class="btn small ghost" data-act="glossary">${t('glossary')}</button><button class="btn small ghost" data-act="sources">${t('assumptions')}</button></span></div>
+      <button class="ai-status" data-act="aiSettings" title="${esc(t('aiSettings'))}"><span class="dot" style="background:${aiProvider() ? 'var(--good)' : 'var(--grey)'}"></span>${esc(aiStatusText())}</button>`;
   }
   function renderMain() {
     const m = $('#main');
-    m.innerHTML = [null, step1, step2, step3, step4, step5][App.step]();
+    m.innerHTML = [null, step1, step2, step3, step4, step5, step6][App.step]();
+  }
+
+
+  // ---------- Projekt-Chat: Reiter am rechten Rand + aufklappbares Fenster (auf jeder Seite) ----------
+  function renderChat() {
+    let dock = $('#chatDock');
+    if (!dock) { dock = document.createElement('div'); dock.id = 'chatDock'; document.body.appendChild(dock); }
+    const msgs = App.chat.map(m => `<div class="msg ${m.role === 'user' ? 'user' : ''}">${esc(m.content)}</div>`).join('');
+    const quick = `<div class="chat-quick">${['chatQ1', 'chatQ2', 'chatQ3'].map(q => `<button class="btn small" data-act="chatQ" data-q="${q}">${t(q)}</button>`).join('')}</div>`;
+    const body = App.sample
+      ? `<div class="chat-msgs" id="chatMsgs">${msgs || `<p class="small muted">${I.lang === 'en' ? 'Ask anything about your project – the AI knows the current values.' : 'Frag alles zu deinem Projekt – die KI kennt die aktuellen Werte.'}</p>`}</div>
+         ${quick}
+         <form class="chatform" data-form="chat"><input type="text" id="chatIn" placeholder="${esc(t('chatPh'))}" aria-label="${t('chatTitle')}" value="${esc(App.chatDraft || '')}" ${App.chatBusy ? 'disabled' : ''}><button class="btn primary" type="submit" ${App.chatBusy ? 'disabled' : ''}>${App.chatBusy ? '<span class="spinner"></span>' : t('send')}</button></form>`
+      : `<div class="banner"><span class="small">${t('aiUnavailable')}</span><button class="btn small primary" data-act="aiSettings">${t('aiSetup')}</button></div>`;
+    dock.innerHTML = `
+      <button class="chat-tab" data-act="chatToggle" aria-expanded="${!!App.chatOpen}" aria-controls="chatPanel" ${App.chatOpen ? 'hidden' : ''}>${icon('chat', 18)}<span>${t('chatTitle')}</span>${App.chat.length ? `<span class="chat-count">${Math.ceil(App.chat.length / 2)}</span>` : ''}</button>
+      <aside class="chat-panel" id="chatPanel" role="dialog" aria-label="${esc(t('chatTitle'))}" ${App.chatOpen ? '' : 'hidden'}>
+        <div class="chat-head"><h3>${icon('chat')} ${t('chatTitle')}</h3><button class="iconbtn" data-act="chatToggle" aria-label="${t('close')}">${icon('x', 18)}</button></div>
+        ${body}
+      </aside>`;
+    const box = $('#chatMsgs'); if (box) box.scrollTop = box.scrollHeight;
   }
 
   // ---------- Schritt 1 ----------
@@ -224,7 +250,7 @@
           <label class="f">${t('subtype')}<select data-path="sub">${bt.sub.map(s => `<option value="${s[0]}" ${s[0] === st.sub ? 'selected' : ''}>${esc(I.lang === 'en' ? s[2] : s[1])}</option>`).join('')}</select></label>
         </div>
         <div class="grid g4">
-          <label class="f">${icon('globe', 14)} ${t('country')}<select data-act-change="country">${countryOptions(loc.cc)}</select></label>
+          <label class="f"><span class="flbl">${icon('globe', 14)}${t('country')}</span><select data-act-change="country">${countryOptions(loc.cc)}</select></label>
           <label class="f">${t('region')}<select data-path="loc">${D.LOCATIONS.filter(l => l.cc === loc.cc).map(l => `<option value="${l.id}" ${l.id === st.loc ? 'selected' : ''}>${esc(nm(l))}</option>`).join('')}</select></label>
           <label class="f">${t('year')}<input type="number" data-path="year" value="${esc(st.year || '')}" step="1"></label>
           <label class="f">${t('heating')}<select data-path="tech.heat">${D.HEATING.map(h => `<option value="${h.id}" ${h.id === st.tech.heat ? 'selected' : ''}>${esc(nm(h))}</option>`).join('')}</select></label>
@@ -232,7 +258,7 @@
         <label class="f">${t('description')}<textarea data-path="meta.desc" placeholder="${esc(t('descPh'))}">${esc((st.meta && st.meta.desc) || '')}</textarea></label>
       </div>
     </section>
-    ${!aiOk ? `<div class="banner" style="margin-bottom:12px"><span class="small">${icon('info', 14)} ${t('aiUnavailable')}</span><button class="btn small primary" data-act="aiSettings">${t('aiSetup')}</button></div>` : `<p class="xs muted" style="margin-bottom:10px">${esc(aiStatusText())}</p>`}
+    ${!aiOk ? `<div class="banner" style="margin-bottom:12px"><span class="small">${icon('info', 14)} ${t('aiUnavailable')}</span><button class="btn small primary" data-act="aiSettings">${t('aiSetup')}</button></div>` : ''}
     <div class="row end">
       <button class="btn" data-act="skip">${t('skipToForm')}</button>
       ${App.modelFile ? `<button class="btn ${App.plans.length && aiOk ? '' : 'primary'}" data-act="readModel">${icon('cube', 16)} ${t('readModel')}</button>` : ''}
@@ -326,7 +352,7 @@
             <label class="f">${t('cooling')}<select data-path="tech.cool">${['auto', 'none', 'split'].map(c => `<option value="${c}" ${c === tch.cool ? 'selected' : ''}>${t('cool_' + c)}</option>`).join('')}</select></label>
             <label class="f">${t('ventilation')}<select data-path="tech.vent">${['window', 'exhaust', 'mvhr'].map(v => `<option value="${v}" ${v === tch.vent ? 'selected' : ''}>${t('vent_' + v)}</option>`).join('')}</select></label>
             <label class="f">${t('pv')}<input type="number" step="0.5" min="0" data-path="tech.pv" value="${esc(tch.pv || 0)}"></label>
-            <label class="f">${t('thermalBridges')} ${help(GL.wb)}<input type="number" step="0.01" min="0" data-path="tech.wb" value="${esc(tch.wb)}"></label>
+            <label class="f"><span class="flbl">${t('thermalBridges')} ${help(GL.wb)}</span><input type="number" step="0.01" min="0" data-path="tech.wb" value="${esc(tch.wb)}"></label>
             <label class="f">${t('airChange')}<input type="number" step="0.05" min="0" data-path="tech.n" value="${esc(tch.n)}"></label>
           </div>
           <div class="row"><label class="check"><input type="checkbox" data-path="tech.night" ${tch.night ? 'checked' : ''}>${t('nightVent')}</label><label class="check"><input type="checkbox" data-path="tech.st" ${tch.st ? 'checked' : ''}>${t('solarThermal')}</label><label class="check"><input type="checkbox" data-path="tech.rain" ${tch.rain ? 'checked' : ''}>${t('rainwater')}</label></div>
@@ -334,8 +360,8 @@
         <div class="card stack"><h3>${icon('sun')} ${t('climate')}</h3>
           <p class="small muted">${esc(nm(cl.loc))}, ${esc(nm(cl.country))} · ${t('gridCo2')} ${fmt(cl.country.co2, 2)} kg/kWh</p>
           <div class="grid g3">
-            <label class="f">${t('hdd')} ${help(GL.hdd)}<input type="number" data-path="clim.hdd" value="${esc((st.clim || {}).hdd != null ? st.clim.hdd : '')}" placeholder="${cl.loc.hdd}"></label>
-            <label class="f">${t('cdd')} ${help(GL.cdd)}<input type="number" data-path="clim.cdd" value="${esc((st.clim || {}).cdd != null ? st.clim.cdd : '')}" placeholder="${cl.loc.cdd}"></label>
+            <label class="f"><span class="flbl">${t('hdd')} ${help(GL.hdd)}</span><input type="number" data-path="clim.hdd" value="${esc((st.clim || {}).hdd != null ? st.clim.hdd : '')}" placeholder="${cl.loc.hdd}"></label>
+            <label class="f"><span class="flbl">${t('cdd')} ${help(GL.cdd)}</span><input type="number" data-path="clim.cdd" value="${esc((st.clim || {}).cdd != null ? st.clim.cdd : '')}" placeholder="${cl.loc.cdd}"></label>
             <label class="f">${t('gh')}<input type="number" data-path="clim.gh" value="${esc((st.clim || {}).gh != null ? st.clim.gh : '')}" placeholder="${cl.loc.gh}"></label>
           </div>
           <h4>${icon('euro', 14)} ${t('energyPrices')}</h4>
@@ -407,33 +433,6 @@
     const S = CH.SCREEN;
     const tg = r.targets;
     const kp = (label, v, u, extra, h) => `<div class="kpi"><span class="label">${label} ${h != null ? help(h) : ''}</span><span class="v">${v}</span><span class="u">${u}${extra ? ' · ' + extra : ''}</span></div>`;
-    const sortEff = { low: 0, med: 1, high: 2, design: 3 };
-    const ms = c.ms.slice().sort(App.sort === 'impact' ? (a, b) => b.dLife - a.dLife : (a, b) => sortEff[a.effort] - sortEff[b.effort] || b.dLife - a.dLife);
-    const ai = App.ai[st.id] || {};
-    const mcard = m => {
-      const on = c.sel.includes(m.id);
-      const T = I.MEASURE_TEXT[m.id][I.lang];
-      return `<div class="mcard g-${m.group} ${on ? 'on' : ''}"><input type="checkbox" data-measure="${m.id}" ${on ? 'checked' : ''} aria-label="${esc(T[0])}" style="margin-top:3px">
-        <div><div class="row" style="justify-content:space-between"><h4>${esc(T[0])}</h4><span class="row" style="gap:6px"><span class="chip">${t('effort')}: ${t('ef_' + m.effort)}</span>${VW.hasModel && m.affected.length ? `<button class="btn small ghost" data-act="showOnModel" data-id="${m.id}">${icon('cube', 12)} ${t('showOnModel')}</button>` : ''}</span></div>
-        <p class="small muted">${esc(T[1])}</p>
-        ${ai.texts && ai.texts[m.id] ? `<p class="aitext">${esc(ai.texts[m.id])}</p>` : ''}
-        <div class="mfig small">
-          <div><span class="xs muted">${t('saving')} · ${t('endEnergy')}</span><span class="v">${fmt(m.dEnd, 0)} kWh/a</span></div>
-          <div><span class="xs muted">CO₂ · 50 a</span><span class="v">${fmt(m.dLife / 1000, 1)} t</span></div>
-          <div><span class="xs muted">${t('cost')}</span><span class="v">${m.cost == null ? t('designCost') : fmt(m.cost, 0) + ' €'}</span></div>
-          <div><span class="xs muted">${t('payback')} ${help(GL.payback)}</span><span class="v">${m.payback != null ? fmt(m.payback, 0) + ' ' + t('years') : t('noPayback')}</span></div>
-          <div><span class="xs muted">${t('eurPerT')}</span><span class="v">${m.eurPerT != null ? fmt(m.eurPerT, 0) + ' €' : '–'}</span></div>
-          ${m.extra.rain ? `<div><span class="xs muted">${t('rainPotential')}</span><span class="v">${fmt(m.extra.rain, 0)} m³/a</span></div>` : ''}
-          ${m.extra.runoff > 1 ? `<div><span class="xs muted">${t('runoff')}</span><span class="v">−${fmt(m.extra.runoff, 0)} m³/a</span></div>` : ''}
-          ${m.extra.qc > 50 ? `<div><span class="xs muted">${t('coolDemand')}</span><span class="v">−${fmt(m.extra.qc, 0)} kWh/a</span></div>` : ''}
-          ${Math.abs(m.extra.circ) >= 1 ? `<div><span class="xs muted">${t('circularity')}</span><span class="v">${m.extra.circ > 0 ? '+' : ''}${fmt(m.extra.circ, 0)} P.</span></div>` : ''}
-        </div>
-        ${m.warn.map(w => `<div class="warn">${icon('info', 12)} ${t('warn_' + w)}</div>`).join('')}</div></div>`;
-    };
-    const groups = App.sort === 'impact'
-      ? K.GROUP_ORDER.map(g => { const list = ms.filter(m => m.group === g); return list.length ? `<div class="mgroup"><div class="label">${t('g_' + g)}</div>${list.map(mcard).join('')}</div>` : ''; }).join('')
-      : `<div class="mgroup">${ms.map(mcard).join('')}</div>`;
-
     const L = I.lang === 'en';
     const targetsHtml = [
       ['t_passivhaus', tg.passivhaus.value, tg.passivhaus.limit, null, 'kWh/m²a', tg.passivhaus.status],
@@ -455,7 +454,6 @@
 
     const viewer = VW.hasModel ? modelPanel(c) : '';
     const exA = r.exA13 > 0 || st.mode === 'existing';
-    const chat = App.chat.map(m => `<div class="msg ${m.role === 'user' ? 'user' : ''}">${esc(m.content)}</div>`).join('');
 
     return `<section class="section"><div class="section-head"><h2>${t('s4Title')}</h2>
       <div class="row"><button class="btn small" data-act="exportPdf" ${App.busy ? 'disabled' : ''}>${icon('download', 14)} ${App.busy === 'pdf' ? t('generating') : t('exportPdf')}</button><button class="btn small" data-act="exportXlsx" ${App.busy ? 'disabled' : ''}>${icon('download', 14)} ${App.busy === 'xlsx' ? t('generating') : t('exportXlsx')}</button>${VW.hasModel ? `<button class="btn small" data-act="exportGuid" ${App.busy ? 'disabled' : ''}>${icon('download', 14)} ${t('exportGuid')}</button>` : ''}<button class="btn small primary" data-act="newVariant" ${App.variants.length >= 3 ? 'disabled' : ''}>${icon('variants', 14)} ${t('newVariant')}</button></div></div></section>
@@ -497,19 +495,68 @@
         <p class="text-sm">${c.demo.saving >= 0 ? t('keepSaves') : t('keepCosts')} <strong class="num">${fmt(Math.abs(c.demo.saving) / 1000, 0)} t CO₂e</strong>.</p></div></div>`) : ''}
       ${tile(7, '', `<h3>${icon('recycle')} ${t('circTitle')}</h3><div class="tablewrap"><table><thead><tr><th>${t('kind')}</th><th class="n">${t('area')} m²</th><th class="n">kg/m²</th><th>${t('grade')}</th></tr></thead><tbody>
         ${r.els.map(e => `<tr><td>${kindLabel(e.kind)}${e.key ? ' ' + t('or_' + e.key) : ''}<div class="xs muted">${esc(e.src.name || conLabel(e.src))}</div></td><td class="n">${fmt(e.area, 0)}</td><td class="n">${fmt(e.co2m2, 0)}${e.existing ? '<span class="xs muted"> (B)</span>' : ''}</td><td><span class="grade ${e.circGrade}">${e.circGrade}</span></td></tr>`).join('')}</tbody></table></div>`)}
-      ${tile(4, 'fern', `<h3>${icon('sun')} ${t('summerTitle')}</h3>
+      ${tile(6, 'fern', `<h3>${icon('sun')} ${t('summerTitle')}</h3>
         <div class="flex justify-between items-center gap-2"><span class="text-sm">${t('summerRisk')}</span>${statusPill({ low: 'ok', medium: 'near', high: 'fail' }[r.summerRisk], t('risk_' + r.summerRisk))}</div>
         <div class="flex justify-between items-center gap-2"><span class="text-sm">${icon('light', 14)} ${t('daylight')}</span>${statusPill(r.daylight === 'ok' ? 'ok' : 'near', t('dl_' + r.daylight))}</div>
         <div><div class="eyebrow">${t('wfr')}</div><div class="big">${fmt(r.wfr * 100, 0)} %</div></div>
         <p class="xs muted">${L ? 'Thermal mass' : 'Speichermasse'}: ${massTxt} · ${t('cdd')}: ${fmt(r.cl.cdd)} · ${r.coolActive ? t('cool_split') : t('cool_none')}</p>`)}
-      ${tile(3, 'ochre', `<h3>${icon('plant')} ${t('solarGreenTitle')}</h3>
+      ${tile(6, 'ochre', `<h3>${icon('plant')} ${t('solarGreenTitle')}</h3>
         <div><div class="eyebrow">${t('pvYield')}</div><div class="text-xl font-extrabold num">${r.kwp ? fmt(r.pvYield, 0) + ' kWh/a' : t('noPv')}</div>${r.kwp ? `<span class="xs muted">${fmt(r.kwp, 1)} kWp · ${t('pvSelfUse')} ${fmt(r.pvSelf, 0)}</span>` : ''}</div>
         <div><div class="eyebrow">${icon('drop', 12)} ${t('runoff')}</div><div class="text-xl font-extrabold num">${fmt(r.runoff, 0)} m³/a</div>${r.greenRoof ? `<span class="xs muted">${t('greenRoof')}</span>` : ''}</div>
         <div><div class="eyebrow">${t('rainPotential')}</div><div class="text-xl font-extrabold num">${fmt(r.rainPotential, 0)} m³/a ${r.tech.rain ? '✓' : ''}</div></div>`)}
-      ${tile(5, 'soft', `<h3>${t('beforeAfter')}</h3>
+    </div>
+    <div class="row end" style="margin-top:20px"><button class="btn" data-act="step" data-v="3">${t('back')}</button><button class="btn primary" data-act="step" data-v="5">${icon('target', 16)} ${t('step5')}</button></div>`;
+  }
+
+  // ---------- Schritt 5: Optimierungsvorschläge + Vorher/Nachher ----------
+  function step5() {
+    const c = compute(cur());
+    App.lastCtx = c;
+    const r = c.res, o = c.opt, st = c.st;
+    const S = CH.SCREEN;
+    const L = I.lang === 'en';
+    const sortEff = { low: 0, med: 1, high: 2, design: 3 };
+    const ms = c.ms.slice().sort(App.sort === 'impact' ? (a, b) => b.dLife - a.dLife : (a, b) => sortEff[a.effort] - sortEff[b.effort] || b.dLife - a.dLife);
+    const ai = App.ai[st.id] || {};
+    const mcard = m => {
+      const on = c.sel.includes(m.id);
+      const T = I.MEASURE_TEXT[m.id][I.lang];
+      return `<div class="mcard g-${m.group} ${on ? 'on' : ''}"><input type="checkbox" data-measure="${m.id}" ${on ? 'checked' : ''} aria-label="${esc(T[0])}" style="margin-top:3px">
+        <div><div class="row" style="justify-content:space-between"><h4>${esc(T[0])}</h4><span class="row" style="gap:6px"><span class="chip">${t('effort')}: ${t('ef_' + m.effort)}</span>${VW.hasModel && m.affected.length ? `<button class="btn small ghost" data-act="showOnModel" data-id="${m.id}">${icon('cube', 12)} ${t('showOnModel')}</button>` : ''}</span></div>
+        <p class="small muted">${esc(T[1])}</p>
+        ${ai.texts && ai.texts[m.id] ? `<p class="aitext">${esc(ai.texts[m.id])}</p>` : ''}
+        <div class="mfig small">
+          <div><span class="xs muted">${t('saving')} · ${t('endEnergy')}</span><span class="v">${fmt(m.dEnd, 0)} kWh/a</span></div>
+          <div><span class="xs muted">CO₂ · 50 a</span><span class="v">${fmt(m.dLife / 1000, 1)} t</span></div>
+          <div><span class="xs muted">${t('cost')}</span><span class="v">${m.cost == null ? t('designCost') : fmt(m.cost, 0) + ' €'}</span></div>
+          <div><span class="xs muted">${t('payback')} ${help(GL.payback)}</span><span class="v">${m.payback != null ? fmt(m.payback, 0) + ' ' + t('years') : t('noPayback')}</span></div>
+          <div><span class="xs muted">${t('eurPerT')}</span><span class="v">${m.eurPerT != null ? fmt(m.eurPerT, 0) + ' €' : '–'}</span></div>
+          ${m.extra.rain ? `<div><span class="xs muted">${t('rainPotential')}</span><span class="v">${fmt(m.extra.rain, 0)} m³/a</span></div>` : ''}
+          ${m.extra.runoff > 1 ? `<div><span class="xs muted">${t('runoff')}</span><span class="v">−${fmt(m.extra.runoff, 0)} m³/a</span></div>` : ''}
+          ${m.extra.qc > 50 ? `<div><span class="xs muted">${t('coolDemand')}</span><span class="v">−${fmt(m.extra.qc, 0)} kWh/a</span></div>` : ''}
+          ${Math.abs(m.extra.circ) >= 1 ? `<div><span class="xs muted">${t('circularity')}</span><span class="v">${m.extra.circ > 0 ? '+' : ''}${fmt(m.extra.circ, 0)} P.</span></div>` : ''}
+        </div>
+        ${m.warn.map(w => `<div class="warn">${icon('info', 12)} ${t('warn_' + w)}</div>`).join('')}</div></div>`;
+    };
+    const groups = App.sort === 'impact'
+      ? K.GROUP_ORDER.map(g => { const list = ms.filter(m => m.group === g); return list.length ? `<div class="mgroup"><div class="label">${t('g_' + g)}</div>${list.map(mcard).join('')}</div>` : ''; }).join('')
+      : `<div class="mgroup">${ms.map(mcard).join('')}</div>`;
+
+    const span = n => `col-span-1 ${n >= 6 ? 'md:col-span-6' : 'md:col-span-3'} lg:col-span-${n}`;
+    const tile = (n, cls, inner) => `<div class="bento ${cls || ''} ${span(n)}">${inner}</div>`;
+    const darkCls = ['C', 'D', 'E'].includes(r.cls.c);
+    return `<section class="section"><div class="section-head"><h2>${t('s5mTitle')}</h2></div></section>
+    <div class="grid grid-cols-1 md:grid-cols-6 lg:grid-cols-12 gap-4 grid-flow-dense">
+      ${tile(4, 'soft', `<h3>${t('beforeAfter')}</h3>
         <div class="flex items-center gap-4 flex-wrap"><div class="hero-cls" style="font-size:2.2rem;background:${r.cls.col};color:${darkCls ? '#1b2420' : '#fff'}">${r.cls.c}</div><span class="big">→</span><div class="hero-cls" style="font-size:2.2rem;background:${o.cls.col};color:${['C', 'D', 'E'].includes(o.cls.c) ? '#1b2420' : '#fff'}">${o.cls.c}</div></div>
         <div class="grid grid-cols-2 gap-3"><div><div class="eyebrow">${t('selectedMeasures')}</div><div class="big">${c.sel.length}</div></div><div><div class="eyebrow">${t('totalCost')}</div><div class="big">${fmt(c.totalCost / 1000, 0)}k €</div></div></div>
         <p class="xs muted">${fmt(r.lifeSpec, 1)} → ${fmt(o.lifeSpec, 1)} kg CO₂e/(m²·a)</p>`)}
+      ${tile(8, 'mint', `<h3>${L ? 'Impact of the measures' : 'Wirkung der Maßnahmen'}</h3><span class="muted text-sm">${c.sel.length} ${t('selectedMeasures')} · ${t('totalCost')} ${fmt(c.totalCost, 0)} €</span>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="card">${CH.grouped([t('endEnergy')], [{ name: t('before'), values: [r.endSpec], color: S.grey }, { name: t('after'), values: [o.endSpec], color: S.accent }], { unit: 'kWh/m²a', h: 200, w: 300 })}<p class="xs muted">${t('effClass')}: ${r.cls.c} → ${o.cls.c}</p></div>
+          <div class="card">${CH.grouped(['CO₂ ' + (L ? 'operation' : 'Betrieb')], [{ name: t('before'), values: [r.co2Op / 1000], color: S.grey }, { name: t('after'), values: [o.co2Op / 1000], color: S.accent }], { unit: 't CO₂e/a', dec: 1, h: 200, w: 300 })}</div>
+          <div class="card">${CH.grouped([t('co2Total')], [{ name: t('before'), values: [r.lifeTotal / 1000], color: S.grey }, { name: t('after'), values: [o.lifeTotal / 1000], color: S.accent }], { unit: 't CO₂e', h: 200, w: 300 })}<p class="xs muted">${fmt(r.lifeSpec, 1)} → ${fmt(o.lifeSpec, 1)} kg CO₂e/(m²·a)</p></div>
+        </div>`)}
       ${tile(12, '', `<div class="flex justify-between items-center gap-3 flex-wrap"><h3>${icon('target')} ${t('measuresTitle')}</h3>
         <div class="row"><div class="seg"><button data-act="sort" data-v="impact" aria-pressed="${App.sort === 'impact'}">${t('sortImpact')}</button><button data-act="sort" data-v="effort" aria-pressed="${App.sort === 'effort'}">${t('sortEffort')}</button></div>
         ${App.sample ? `<button class="btn small" data-act="aiExplain" ${App.busy === 'explain' ? 'disabled' : ''}>${App.busy === 'explain' ? '<span class="spinner"></span> ' + t('aiExplaining') : icon('chat', 14) + ' ' + t('aiExplain')}</button>` : ''}</div></div>
@@ -517,23 +564,10 @@
         ${ai.fazit ? `<div class="card accent"><p>${esc(ai.fazit)}</p></div>` : ''}
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">${ms.length ? groups : `<div class="empty">–</div>`}</div>
         ${ai.extra && ai.extra.length ? `<div class="card accent stack"><h4>${t('aiExtra')}</h4>${ai.extra.map(x => `<div><strong class="small">${esc(x.titel || '')}</strong><p class="small">${esc(x.text || '')}</p></div>`).join('')}</div>` : ''}`)}
-      ${tile(12, 'mint', `<h3>${t('beforeAfter')}</h3><span class="muted text-sm">${c.sel.length} ${t('selectedMeasures')} · ${t('totalCost')} ${fmt(c.totalCost, 0)} €</span>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div class="card">${CH.grouped([t('endEnergy')], [{ name: t('before'), values: [r.endSpec], color: S.grey }, { name: t('after'), values: [o.endSpec], color: S.accent }], { unit: 'kWh/m²a', h: 200, w: 300 })}<p class="xs muted">${t('effClass')}: ${r.cls.c} → ${o.cls.c}</p></div>
-          <div class="card">${CH.grouped(['CO₂ ' + (L ? 'operation' : 'Betrieb')], [{ name: t('before'), values: [r.co2Op / 1000], color: S.grey }, { name: t('after'), values: [o.co2Op / 1000], color: S.accent }], { unit: 't CO₂e/a', dec: 1, h: 200, w: 300 })}</div>
-          <div class="card">${CH.grouped([t('co2Total')], [{ name: t('before'), values: [r.lifeTotal / 1000], color: S.grey }, { name: t('after'), values: [o.lifeTotal / 1000], color: S.accent }], { unit: 't CO₂e', h: 200, w: 300 })}<p class="xs muted">${fmt(r.lifeSpec, 1)} → ${fmt(o.lifeSpec, 1)} kg CO₂e/(m²·a)</p></div>
-        </div>`)}
-      ${tile(7, 'sage', `<h3>${icon('pin')} ${t('siteTitle')}</h3><span class="muted text-sm">${esc(nm(r.cl.loc))}, ${esc(nm(r.cl.country))}</span>
-        ${CH.compareRow(t('hdd'), r.cl.hdd, D.EU_AVG.hdd, 7000, { unit: 'Kd', w: 900 })}${CH.compareRow(t('cdd'), r.cl.cdd, D.EU_AVG.cdd, 1100, { unit: 'Kd', w: 900 })}${CH.compareRow(t('gh'), r.cl.gh, D.EU_AVG.gh, 2000, { unit: 'kWh/m²a', w: 900 })}${CH.compareRow(t('gridCo2') + ' (g/kWh)', r.cl.country.co2 * 1000, 250, 850, { unit: 'g', w: 900 })}
-        <p class="xs muted">┆ = ${t('euAvg')}</p>`)}
-      ${tile(5, 'mint', `<h3>${icon('info')} ${t('assumptions')}</h3>${sourcesHtml()}`)}
-      ${tile(12, '', `<h3>${icon('chat')} ${t('chatTitle')}</h3>
-        ${App.sample ? `<div class="chat">${chat || `<div class="row">${['chatQ1', 'chatQ2', 'chatQ3'].map(q => `<button class="btn small" data-act="chatQ" data-q="${q}">${t(q)}</button>`).join('')}</div>`}
-          <form class="chatform" data-form="chat"><input type="text" id="chatIn" placeholder="${esc(t('chatPh'))}" aria-label="${t('chatTitle')}" ${App.chatBusy ? 'disabled' : ''}><button class="btn primary" type="submit" ${App.chatBusy ? 'disabled' : ''}>${App.chatBusy ? '<span class="spinner"></span>' : t('send')}</button></form></div>`
-          : `<div class="banner"><span class="small">${t('aiUnavailable')}</span><button class="btn small primary" data-act="aiSettings">${t('aiSetup')}</button></div>`}`)}
     </div>
-    <div class="row end" style="margin-top:20px"><button class="btn" data-act="step" data-v="3">${t('back')}</button><button class="btn primary" data-act="step" data-v="5">${t('step5')}</button></div>`;
+    <div class="row end" style="margin-top:20px"><button class="btn" data-act="step" data-v="4">${t('back')}</button><button class="btn primary" data-act="step" data-v="6">${t('step6')}</button></div>`;
   }
+
   function calcWayEnergy(r) {
     const L = I.lang === 'en';
     return [
@@ -596,8 +630,8 @@
           <div class="row"><button class="btn small" data-act="resetAdj">${t('resetAdj')}</button><button class="btn small" data-act="newVariant" ${App.variants.length >= 3 ? 'disabled' : ''}>${icon('variants', 12)} ${t('saveAsVariant')}</button></div></div>`;
   }
 
-  // ---------- Schritt 5 ----------
-  function step5() {
+  // ---------- Schritt 6: Varianten ----------
+  function step6() {
     const ctxs = App.variants.map(v => compute(v));
     const rows = variantRows(ctxs, true);
     const cards = App.variants.map((v, i) => `<div class="vcard ${i === App.active ? 'active' : ''}"><div class="row" style="justify-content:space-between"><strong>${t('variant')}</strong>${i === App.active ? `<span class="chip">${t('active')}</span>` : ''}</div>
@@ -607,13 +641,15 @@
     const S = CH.SCREEN;
     const best = (vals, low) => { const b = low ? Math.min(...vals) : Math.max(...vals); return vals.map(v => v === b && vals.length > 1); };
     const g = (label, vals, unit, dec, low) => `<div class="card">${CH.grouped(App.variants.map(v => v.name), [{ name: label, values: vals, color: S.accent, mark: best(vals, low) }], { unit, dec, h: 210, w: 320 })}</div>`;
-    return `<section class="section"><div class="section-head"><h2>${t('s5Title')}</h2><span class="muted small">${t('s5Intro')}</span></div>
+    return `<section class="section"><div class="section-head"><h2>${t('s5Title')}</h2>
+      <div class="row"><button class="btn small" data-act="exportPdf" ${App.busy ? 'disabled' : ''}>${icon('download', 14)} ${App.busy === 'pdf' ? t('generating') : t('exportPdf')}</button><button class="btn small" data-act="exportXlsx" ${App.busy ? 'disabled' : ''}>${icon('download', 14)} ${App.busy === 'xlsx' ? t('generating') : t('exportXlsx')}</button>${VW.hasModel ? `<button class="btn small" data-act="exportGuid" ${App.busy ? 'disabled' : ''}>${icon('download', 14)} ${t('exportGuid')}</button>` : ''}</div></div>
+      <p class="muted small">${t('s5Intro')}</p>
       <div class="grid g3">${cards}${App.variants.length < 3 ? `<button class="vcard" data-act="dupVariant" data-i="${App.active}" style="cursor:pointer;align-items:center;justify-content:center;color:var(--accent)">${icon('plus', 22)}<span>${t('newVariant')}</span></button>` : ''}</div>
       <p class="xs muted">${I.lang === 'en' ? 'Each variant includes its selected measures.' : 'Jede Variante inklusive ihrer gewählten Maßnahmen.'}</p>
       <div class="tablewrap"><table><thead><tr><th>${t('compare')}</th>${App.variants.map(v => `<th class="n">${esc(v.name)}</th>`).join('')}</tr></thead><tbody>
         ${rows.map(r => `<tr><td>${esc(r.label)}</td>${r.vals.map((v, i) => `<td class="n ${r.best[i] ? 'best' : ''}">${esc(r.fmt[i])}${r.best[i] ? ' ★' : ''}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
       <div class="grid g3">${g(t('endEnergy'), ctxs.map(c => c.opt.endSpec), 'kWh/m²a', 0, true)}${g(t('co2PerNrfA'), ctxs.map(c => c.opt.lifeSpec), 'kg/(m²·a)', 1, true)}${g(t('co2PerBgf'), ctxs.map(c => c.opt.embPerBgf), 'kg/m² BGF', 0, true)}</div>
-      <div class="row end"><button class="btn" data-act="step" data-v="4">${t('back')}</button><button class="btn" data-act="exportPdf">${icon('download', 14)} ${t('exportPdf')}</button><button class="btn" data-act="exportXlsx">${icon('download', 14)} ${t('exportXlsx')}</button></div>
+      <div class="row end"><button class="btn" data-act="step" data-v="5">${t('back')}</button></div>
     </section>`;
   }
   function variantRows(ctxs, withBest) {
@@ -894,7 +930,7 @@
   async function chatSend(q) {
     q = String(q || '').trim();
     if (!q || !App.sample || App.chatBusy) return;
-    const c = App.lastCtx || compute(cur());
+    const c = compute(cur()); // immer mit den aktuellen Werten, egal auf welchem Reiter
     App.chat.push({ role: 'user', content: q });
     App.chat.push({ role: 'assistant', content: '…' });
     App.chatBusy = true; render();
@@ -1014,8 +1050,8 @@
     delWindow: el => { const st = cur(); st.windows = st.windows.filter(w => w.id !== el.dataset.id); render(); },
     sort: el => { App.sort = el.dataset.v; render(); },
     aiExplain,
-    chatQ: el => chatSend(t(el.dataset.q)),
-    showOnModel: el => { const m = (App.lastCtx || compute(cur())).ms.find(x => x.id === el.dataset.id); App.highlight = m ? m.affected : null; applyModelColors(); const v = $('#viewer3d'); if (v) v.scrollIntoView({ behavior: 'smooth', block: 'center' }); },
+    chatQ: el => { App.chatOpen = true; chatSend(t(el.dataset.q)); },
+    showOnModel: el => { const m = (App.lastCtx || compute(cur())).ms.find(x => x.id === el.dataset.id); App.highlight = m ? m.affected : null; if (App.step !== 4) { App.step = 4; render(); App.highlight = m ? m.affected : null; } applyModelColors(); const v = $('#viewer3d'); if (v) v.scrollIntoView({ behavior: 'smooth', block: 'center' }); },
     ba: () => { App.ba = !App.ba; render(); },
     view: el => { if (el.dataset.v === 'fit') VW.frame(); else VW.view(el.dataset.v); },
     deselect: () => { App.selected = null; App.highlight = null; render(); },
@@ -1046,6 +1082,7 @@
     delVariant: el => { const i = +el.dataset.i; if (App.variants.length <= 1) return; App.variants.splice(i, 1); App.active = Math.min(App.active, App.variants.length - 1); render(); },
     exportPdf: () => doExport('pdf'), exportXlsx: () => doExport('xlsx'), exportGuid: () => doExport('guid'),
     aiSettings: () => openAiSettings(),
+    chatToggle: () => { App.chatOpen = !App.chatOpen; renderChat(); if (App.chatOpen) { const i = $('#chatIn'); if (i) i.focus(); } else { const tb = document.querySelector('.chat-tab'); if (tb) tb.focus(); } },
     orSave: () => {
       const v = orFormValues();
       if (v.key) OR.cfg.key = v.key;
@@ -1091,7 +1128,7 @@
   root.addEventListener('keydown', e => {
     const drop = e.target.closest && e.target.closest('[data-drop]');
     if (drop && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); drop.click(); }
-    if (e.key === 'Escape') closeModal();
+    if (e.key === 'Escape') { if ($('#modal')) closeModal(); else if (App.chatOpen) { App.chatOpen = false; renderChat(); } }
   });
   root.addEventListener('dragover', e => { const d = e.target.closest && e.target.closest('[data-drop]'); if (d) { e.preventDefault(); d.classList.add('over'); } });
   root.addEventListener('dragleave', e => { const d = e.target.closest && e.target.closest('[data-drop]'); if (d) d.classList.remove('over'); });
@@ -1108,7 +1145,7 @@
     App.modelFile = f; App.modelInfo = null; render();
   }
   root.addEventListener('submit', e => {
-    if (e.target.dataset.form === 'chat') { e.preventDefault(); const i = $('#chatIn'); const q = i.value; i.value = ''; chatSend(q); }
+    if (e.target.dataset.form === 'chat') { e.preventDefault(); const i = $('#chatIn'); const q = i.value; i.value = ''; App.chatDraft = ''; chatSend(q); }
   });
   function onField(e, commit) {
     const el = e.target;
@@ -1161,7 +1198,7 @@
     if (rerender) render();
   }
   root.addEventListener('change', e => onField(e, true));
-  root.addEventListener('input', e => { if (e.target.type === 'range' || e.target.tagName === 'TEXTAREA' || e.target.type === 'text') onField(e, false); });
+  root.addEventListener('input', e => { if (e.target.id === 'chatIn') { App.chatDraft = e.target.value; return; } if (e.target.type === 'range' || e.target.tagName === 'TEXTAREA' || e.target.type === 'text') onField(e, false); });
 
   async function openProjectFile(f) {
     if (!f) return;
@@ -1177,6 +1214,38 @@
     } catch (e) { toast(t('openFailed')); }
   }
 
+
+  // ---------- Fußspur: Abdrücke drehen sich in Laufrichtung (der Zeiger selbst bleibt fest), alle 50 Bildpunkte, max. 5, verblassend ----------
+  (function footTrail() {
+    if (window.matchMedia && !matchMedia('(pointer: fine)').matches) return; // nur mit Maus
+    if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const SHAPE = "<path d='M15.2 12.4c-3 .4-4.6 2.9-4.3 6 .2 2.1 1.3 3.5 1.2 5.6-.1 3.2.7 6 3.8 6.1 3.2.1 4.6-2.6 4.4-5.9-.1-1.9-.9-3.2-.4-5.1.6-2.3 1.4-3.6.9-5.2-.6-1.8-2.9-1.8-5.6-1.5z'/><ellipse cx='12.5' cy='7.4' rx='2.95' ry='3.35'/><circle cx='17.2' cy='5.7' r='2.25'/><circle cx='20.7' cy='6.8' r='1.95'/><circle cx='23.2' cy='9.1' r='1.65'/><circle cx='24.5' cy='12.1' r='1.4'/>";
+    const stepImg = 'url("data:image/svg+xml,' + encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><g fill='#1f5a3d' stroke='#1f5a3d' stroke-width='0.9' stroke-linejoin='round'>${SHAPE}</g></svg>`) + '")';
+    const STEP = 50, MAX = 5;
+    const steps = [];
+    let last = null, left = false;
+    window.addEventListener('pointermove', e => {
+      if (e.pointerType && e.pointerType !== 'mouse') return;
+      const p = { x: e.clientX, y: e.clientY };
+      if (!last) { last = p; return; }
+      const dx = p.x - last.x, dy = p.y - last.y;
+      if (Math.hypot(dx, dy) < STEP) return;
+      const ang = Math.atan2(dy, dx);
+      left = !left;
+      const off = (left ? -1 : 1) * 7; // leicht seitlich versetzt, wie beim Gehen
+      const x = p.x - Math.sin(ang) * off, y = p.y + Math.cos(ang) * off;
+      const el = document.createElement('div');
+      el.className = 'foot-step';
+      el.setAttribute('aria-hidden', 'true');
+      el.style.backgroundImage = stepImg;
+      el.style.transform = `translate(${x}px, ${y}px) rotate(${ang * 180 / Math.PI + 90}deg) scaleX(${left ? -1 : 1})`;
+      document.body.appendChild(el);
+      steps.push(el);
+      while (steps.length > MAX) steps.shift().remove();
+      el.addEventListener('animationend', () => { el.remove(); const i = steps.indexOf(el); if (i >= 0) steps.splice(i, 1); });
+      last = p;
+    }, { passive: true });
+  })();
   document.documentElement.lang = I.lang;
   App.meta.project = EXAMPLE_NAMES[I.lang === 'en' ? 1 : 0];
   render();
