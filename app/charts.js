@@ -1,4 +1,4 @@
-/* Ökobilanz-Check – Diagramme (SVG) und Liniensymbole */
+/* Greenprint – Diagramme (SVG) und Liniensymbole */
 (function () {
   'use strict';
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -7,7 +7,7 @@
   const SCREEN = {
     fg: 'var(--fg)', muted: 'var(--muted)', grid: 'var(--line)', bg: 'var(--bg)', accent: 'var(--accent)',
     s: ['var(--c1)', 'var(--c2)', 'var(--c3)', 'var(--c4)', 'var(--c5)', 'var(--c6)', 'var(--c7)'],
-    good: 'var(--good)', warn: 'var(--warn)', bad: 'var(--bad)', grey: 'var(--grey)', font: 'Inter, system-ui, sans-serif',
+    good: 'var(--good)', warn: 'var(--warn)', bad: 'var(--bad)', grey: 'var(--grey)', font: 'Nunito, system-ui, sans-serif',
   };
   const PRINT = {
     fg: '#1d2620', muted: '#5f6b63', grid: '#d5dbd6', bg: '#ffffff', accent: '#1f5a3d',

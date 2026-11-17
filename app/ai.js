@@ -1,4 +1,4 @@
-/* Ökobilanz-Check – KI-Anfragen (claude.use("sample")) */
+/* Greenprint – KI-Anfragen (claude.use("sample")) */
 (function () {
   'use strict';
   const D = window.OBC_DATA, I = window.OBC_I18N, K = window.OBC_CALC;

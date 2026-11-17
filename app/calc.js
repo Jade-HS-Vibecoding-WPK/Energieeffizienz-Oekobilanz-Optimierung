@@ -1,4 +1,4 @@
-/* Ökobilanz-Check – Rechenkern
+/* Greenprint – Rechenkern
    Vereinfachtes Heizperiodenverfahren + Kühlabschätzung, Ökobilanz A1–A3, B4, B6, C3–C4 über 50 Jahre.
 */
 (function () {

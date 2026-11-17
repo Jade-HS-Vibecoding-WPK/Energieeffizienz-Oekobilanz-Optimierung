@@ -1,4 +1,4 @@
-/* Ökobilanz-Check – Datengrundlage
+/* Greenprint – Datengrundlage
    Alle Kennwerte sind gerundete Näherungswerte für Entwurf und Lehre.
    Orientierung: ÖKOBAUDAT / EPD-Durchschnittswerte (A1–A3, C3–C4), Eurostat (Gradtage, Preise),
    PVGIS (Einstrahlung), EEA (Strom-CO2), GEG (Effizienzklassen), RIBA 2030 Climate Challenge.

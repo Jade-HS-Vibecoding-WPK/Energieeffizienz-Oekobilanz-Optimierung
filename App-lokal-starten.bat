@@ -1,9 +1,9 @@
 @echo off
-rem Startet die Web-App "Oekobilanz-Check" lokal auf diesem Rechner.
+rem Startet die Web-App "Greenprint" lokal auf diesem Rechner.
 rem Dieses Fenster offen lassen, solange die App benutzt wird. Zum Beenden: Fenster schliessen.
 cd /d "%~dp0app"
 echo.
-echo  Oekobilanz-Check laeuft unter  http://localhost:8765
+echo  Greenprint laeuft unter  http://localhost:8765
 echo  Dieses Fenster offen lassen. Zum Beenden einfach schliessen.
 echo.
 start "" http://localhost:8765

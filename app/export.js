@@ -1,4 +1,4 @@
-/* Ökobilanz-Check – Speichern, PDF-Bericht, Excel, Maßnahmenliste */
+/* Greenprint – Speichern, PDF-Bericht, Excel, Maßnahmenliste */
 (function () {
   'use strict';
   const D = window.OBC_DATA, I = window.OBC_I18N, K = window.OBC_CALC, CH = window.OBC_CHARTS;
@@ -28,17 +28,18 @@
   // ---------- Projektdatei ----------
   function projectJson(app) {
     const strip = v => { const c = K.clone(v); return c; };
-    return JSON.stringify({ app: 'oekobilanz-check', version: 1, savedAt: new Date().toISOString(), meta: app.meta, active: app.active, variants: app.variants.map(strip) }, null, 1);
+    return JSON.stringify({ app: 'greenprint', version: 1, savedAt: new Date().toISOString(), meta: app.meta, active: app.active, variants: app.variants.map(strip) }, null, 1);
   }
   function parseProject(text) {
     const o = JSON.parse(text);
-    if (!o || o.app !== 'oekobilanz-check' || !Array.isArray(o.variants) || !o.variants.length) throw new Error('format');
+    if (!o || !['greenprint', 'oekobilanz-check'].includes(o.app) || !Array.isArray(o.variants) || !o.variants.length) throw new Error('format');
     return o;
   }
 
   // ---------- Text für PDF (Standardschrift ohne Sonderzeichen) ----------
   function pdfText(s) {
     return String(s == null ? '' : s)
+      .replace(/­/g, '')
       .replace(/₂/g, '2').replace(/²/g, '²').replace(/³/g, '³').replace(/≤/g, '<=').replace(/≥/g, '>=').replace(/≈/g, '~')
       .replace(/→/g, '->').replace(/·/g, '·').replace(/[“”„]/g, '"').replace(/[‘’]/g, "'").replace(/−/g, '-').replace(/…/g, '...')
       .replace(/[^\x00-\xFF€–—]/g, '');

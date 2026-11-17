@@ -1,4 +1,4 @@
-/* Ökobilanz-Check – KI über OpenRouter (eigener API-Key)
+/* Greenprint – KI über OpenRouter (eigener API-Key)
    Bildet dieselbe Schnittstelle nach wie claude.use("sample"): sample(input, opts), sample.json(...), sample.limits().
    Der Key liegt nur im Browser (localStorage) und wird nur an openrouter.ai gesendet.
 */
@@ -81,7 +81,7 @@
         if (fallbacks) body.models = fallbacks;
         res = await fetch(API + '/chat/completions', {
           method: 'POST', signal: opts.signal,
-          headers: { 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json', 'X-Title': 'Oekobilanz-Check' },
+          headers: { 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json', 'X-Title': 'Greenprint' },
           body: JSON.stringify(body),
         });
       } catch (e) {

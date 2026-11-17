@@ -1,4 +1,4 @@
-# Umsetzungsplan: Web-App „Ökobilanz-Check“
+# Umsetzungsplan: Web-App „Greenprint“
 
 Stand: 17.11.2026 · Status: **Umgesetzt (Version 1)** – App unter https://claude.ai/artifact/YChJDwMuERSuFfqSoLoAUg, Code in `app/`
 
@@ -38,12 +38,16 @@ Du lädst einen oder mehrere **Pläne** oder ein **3D-/BIM-Modell** (IFC, OBJ, g
 
 | Thema | Entscheidung |
 |---|---|
-| Name | **Ökobilanz-Check** |
+| Name | **Greenprint** (bis 17.11.2026 „Ökobilanz-Check“), Unterzeile „Energieeffizienz und Ökobilanz für deine Projektplanung“ |
 | Akzentfarbe | **Waldgrün** |
-| Schrift | **Space Grotesk** für Überschriften, **Inter** für Texte und Zahlen |
-| Aufbau | **Schritt-für-Schritt-Assistent** mit Fortschrittsleiste (Schritte ① bis ⑤), Zurückspringen jederzeit möglich |
-| Formensprache | **Eckig, mit feinen Linien**, wie ein Plan oder Schriftfeld |
-| Hell/Dunkel | **Beides, automatisch** nach der Einstellung des Computers |
+| Schrift | **Nunito** für die ganze App (Überschriften, Texte, Zahlen) |
+| Hintergrund | **Grauer Grund** (leicht grünlich abgestimmt), Kacheln heller darauf |
+| Aufbau | **Schritt-für-Schritt-Assistent** mit Fortschrittsleiste in Pillenform (Schritte ① bis ⑤), Zurückspringen jederzeit möglich |
+| Ergebnisseite | **Bento-Grid:** Kacheln in unterschiedlichen Größen auf einem 12-Spalten-Raster |
+| Hingucker | Große waldgrüne Kachel mit der **Endenergie als große Zahl** und der **Effizienzklasse** |
+| Formensprache | **Große Rundungen** (Kacheln 28 px, Karten 20 px, Knöpfe pillenförmig), weiche Flächen statt Linien |
+| Gestaltungswerkzeug | **Tailwind CSS** für Raster, Abstände und Schrift |
+| Hell/Dunkel | **Immer hell**, unabhängig von der Einstellung des Computers (geändert am 17.11.2026, vorher automatisch hell/dunkel) |
 | Effizienzskala | **Klassisch bunt** (Grün → Gelb → Rot), wie auf dem Energieausweis |
 | Symbole | **Feine Liniensymbole** im Stil einer Planzeichnung (Wand, Dach, Fenster, Sonne, Heizung …) |
 | PDF-Bericht | **A4 hoch, mit Schriftfeld** (Projekt, Verfasser/in, Datum, Hochschule; du trägst die Angaben selbst ein) |
@@ -315,9 +319,13 @@ Fehlende Angaben ergänzt du in Schritt ③. Bei sehr großen Modellen werden nu
 
 ## 7. Ergebnisseite im Detail
 
+Die Ergebnisseite ist ein **Bento-Grid**: Kacheln in unterschiedlichen Größen auf einem Raster mit 12 Spalten (Tablet 6, Handy 1). Die Kacheln sind so angeordnet, dass jede Reihe voll ist.
+
 | Bereich | Inhalt | Darstellung |
 |---|---|---|
-| Kennzahlen | Endenergie, Effizienzklasse, CO₂ gesamt / pro m² BGF / pro m² NRF und Jahr, PENRT, Kreislaufnote | Zahlenreihe und bunte Effizienzskala A+ bis H |
+| Hingucker | Endenergie, Effizienzklasse, Heizwärmebedarf, PEnrt, ggf. Wert nach den Maßnahmen | große waldgrüne Kachel mit sehr großer Zahl, großem Klassen-Feld und Mini-Skala A+ bis H |
+| Kennzahlen | CO₂ über 50 Jahre, CO₂ pro m² BGF, CO₂ pro m² NRF und Jahr, Energiekosten, Kreislaufnote, gespeicherter Kohlenstoff | sechs kleine Kacheln, teils farbig (Salbei, Ocker, Minze) |
+| Effizienzskala | bunte Skala A+ bis H mit Zeiger | breite Kachel |
 | Zielwerte | Passivhaus, NZEB, Level(s), RIBA 2030 | Ampel und Balken mit Zielmarke |
 | Energiebilanz | Verluste nach Wand, Dach, Boden, Fenster, Lüftung; Gewinne; Kühlbedarf | Balkendiagramm mit Liniensymbolen |
 | Ökobilanz | CO₂ nach Bauteilen; Herstellung, Austausch, Betrieb und Entsorgung; gespeicherter Kohlenstoff | gestapelte Balken |
@@ -337,10 +345,24 @@ Fehlende Angaben ergänzt du in Schritt ③. Bei sehr großen Modellen werden nu
 
 ## 8. Gestaltung im Detail
 
-- **Farben:** Hintergrund leicht warmes Weiß bzw. im Dunkelmodus ein sehr dunkles Grüngrau. Akzent **Waldgrün** für Knöpfe, Fortschritt und Hervorhebungen. Die Grautöne sind leicht grünlich abgestimmt. Die Effizienzskala und die Ampeln nutzen eigene Signalfarben (Grün, Gelb, Rot), die in beiden Modi gut lesbar sind.
-- **Schrift:** Space Grotesk für Überschriften und große Kennzahlen, Inter für Texte, Formulare und Tabellen. Zahlen in Tabellen haben gleich breite Ziffern, damit sie sauber untereinanderstehen.
-- **Formen:** keine Rundungen, feine 1-px-Linien, Karten mit Rahmen statt Schatten. Die Kopfzeile ist wie ein Plan-Schriftfeld gestaltet.
-- **Symbole:** feine Liniensymbole, selbst gezeichnet, passend zur Strichstärke der Linien.
+Stand 17.11.2026: Der ursprüngliche Stil (eckig, feine Linien, Space Grotesk/Inter) wurde auf Wunsch durch ein Bento-Design ersetzt.
+
+- **Farben:** hellgrauer Grund `#E7EBE7`, die App ist immer hell. Darauf helle und farbige Kacheln. Akzent **Waldgrün** `#1F5A3D` für Knöpfe, Fortschritt, Hervorhebungen und die Hingucker-Kachel. Dazu eine passende Palette:
+
+  | Farbe | Einsatz |
+  |---|---|
+  | Waldgrün `#1F5A3D` | Akzent, Hingucker-Kachel, Diagramme |
+  | Salbei `#C8DCCD` | Kacheln, z. B. CO₂ über 50 Jahre, Modell-Steuerung |
+  | Minze `#E3F0E6` | Kacheln, z. B. Kreislauf, Sommer & Komfort |
+  | Ocker `#F3E3BF` / `#B9832C` | warmer Gegenakzent, z. B. Energiekosten, Solar & Wasser, Bestand |
+  | Moos `#D3E5CB`, Farn `#B8D4BE` | weitere Kacheln, Maßnahmen „Technik“ |
+  | Moos `#5F9A6E`, Schiefer `#5B6B73` | Diagrammreihen |
+
+  Die Palette wird auch für Knöpfe, Eingabefelder, Tabellenköpfe, Upload-Felder und die Maßnahmen-Karten verwendet (Entwurf Salbei, Material Minze, Hülle Ocker, Technik Moos). Ampeln und die 3D-Einfärbung laufen von Moosgrün über Ocker nach Rost. **Ausnahme:** Die Effizienzklassen A+ bis H behalten die Originalfarben des Energieausweises.
+- **Schrift:** **Nunito** in der ganzen App, Überschriften und große Kennzahlen sehr fett (800–900). Zahlen in Tabellen haben gleich breite Ziffern. Lange deutsche Wörter werden in schmalen Kacheln mit Bindestrich getrennt.
+- **Formen:** große Rundungen: Kacheln 28 px, Karten 20 px, Eingabefelder 12 px, Knöpfe, Schrittleiste und Kennzeichen pillenförmig. Weiche Flächen statt Rahmenlinien.
+- **Bento-Grid:** Auf der Ergebnisseite sind die Kacheln unterschiedlich groß (z. B. 5, 7 oder 12 von 12 Spalten). Die Hingucker-Kachel steht oben links. Auf dem Handy stapeln sich alle Kacheln untereinander.
+- **Symbole:** feine Liniensymbole, selbst gezeichnet.
 - **Handy:** Die App funktioniert auch auf dem Smartphone. Spalten stapeln sich dann untereinander.
 - **PDF-Bericht:** A4 hoch. Auf jeder Seite unten rechts steht ein **Schriftfeld** mit Projekt, Verfasser/in, Datum, Hochschule und Seitenzahl. Inhalt:
   1. Deckblatt mit Kennzahlen
@@ -368,6 +390,7 @@ Du musst hier nichts selbst tun. Dieser Abschnitt erklärt nur, woraus die App b
   - *SheetJS* erzeugt die Excel-Tabelle und die Maßnahmenliste.
   - *three.js* zeigt das 3D-Modell im Browser an und liest OBJ- und glTF-Dateien.
   - *web-ifc* liest IFC-Dateien. Es braucht eine Zusatzdatei (`web-ifc.wasm`, ein schneller Programmbaustein), die zusammen mit der App veröffentlicht wird.
+  - *Tailwind CSS* (3.4.17) übernimmt Raster, Abstände und Schrift des Bento-Designs. Der Teil, der alle vorhandenen Stile zurücksetzt („Preflight“), ist abgeschaltet, damit Formulare und Tabellen ihre eigenen Stile behalten.
 - **Speichern und Herunterladen:** Über die Download-Funktion von claude.ai, die vor jedem Speichern kurz nachfragt. Das gilt für den PDF-Bericht, die Excel-Tabelle und die Projektdatei (`.json`). Eine Projektdatei öffnest du über eine normale Dateiauswahl.
 - **Diagramme und Symbole** werden direkt in der App gezeichnet und funktionieren im hellen und im dunklen Modus.
 - **Zweisprachig:** Alle Texte liegen auf Deutsch und Englisch vor. Die KI antwortet in der gewählten Sprache.

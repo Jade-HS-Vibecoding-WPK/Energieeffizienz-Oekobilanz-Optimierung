@@ -1,10 +1,10 @@
-/* Ökobilanz-Check – Texte Deutsch / Englisch */
+/* Greenprint – Texte Deutsch / Englisch */
 (function () {
   'use strict';
   const T = {
     de: {
-      appName: 'Ökobilanz-Check',
-      tagline: 'Energieeffizienz und Ökobilanz für Architekturprojekte',
+      appName: 'Greenprint',
+      tagline: 'Energieeffizienz und Ökobilanz für deine Projektplanung',
       openProject: 'Projekt öffnen', saveProject: 'Projekt speichern', newProject: 'Neues Projekt', loadExample: 'Beispiel laden',
       step1: 'Projekt & Pläne', step2: 'Auslesen', step3: 'Werte prüfen', step4: 'Ergebnis', step5: 'Varianten',
       exampleBanner: 'Beispielprojekt: Mehrfamilienhaus, Neubau, 4 Geschosse, Massivbau, Oldenburg. Die Werte sind Beispiele, nicht deine Daten.',
@@ -53,7 +53,7 @@
       // Schritt 4
       s4Title: 'Ergebnis', keyFigures: 'Kennzahlen auf einen Blick',
       endEnergy: 'Endenergie', effClass: 'Effizienzklasse', co2Total: 'CO₂ über 50 Jahre', co2PerBgf: 'CO₂ je m² BGF', co2PerNrfA: 'CO₂ je m² NRF und Jahr',
-      penrt: 'Primärenergie nicht erneuerbar', circularity: 'Kreislauffähigkeit', storedCarbon: 'Gespeicherter Kohlenstoff',
+      penrt: 'Primärenergie nicht erneuerbar', circularity: 'Kreislauf­fähigkeit', storedCarbon: 'Gespeicherter Kohlen­stoff',
       classNote: 'Einstufung für alle Länder nach der Skala des deutschen Energieausweises (GEG), damit Projekte vergleichbar sind. Nationale Ausweise haben eigene Skalen.',
       targetsTitle: 'Zielwerte & Standards', t_passivhaus: 'Passivhaus', t_nzeb: 'Niedrigstenergie (EU, NZEB)', t_ribaOp: 'RIBA 2030 · Betriebsenergie', t_ribaEmb: 'RIBA 2030 · graue Emissionen', t_levels: 'EU Level(s) 1.2 · Lebenszyklus-CO₂',
       st_ok: 'erreicht', st_near: 'knapp verfehlt', st_fail: 'deutlich verfehlt',
@@ -61,7 +61,7 @@
       fossilNote: 'Fossile Heizung: Ein Nullemissionsgebäude (ZEB, ab 2030) ist so nicht möglich.',
       ribaNote: 'RIBA bezieht sich auf die GIA (hier ≈ 0,92 × BGF). Transport und Baustelle (A4–A5) sind nicht enthalten.',
       levelsNote: 'Level(s) gibt keine Grenzwerte vor. Die Bänder sind Orientierungswerte aus der Literatur.',
-      energyBalance: 'Energiebilanz', lossesTitle: 'Wärmeverluste und Gewinne in der Heizperiode', heatDemand: 'Heizwärmebedarf', coolDemand: 'Kühlbedarf', dhw: 'Warmwasser',
+      energyBalance: 'Energiebilanz', lossesTitle: 'Wärmeverluste und Gewinne in der Heizperiode', heatDemand: 'Heizwärme­bedarf', coolDemand: 'Kühl­bedarf', dhw: 'Warmwasser',
       transmission: 'Transmission', ventilationLoss: 'Lüftung', thermalBridge: 'Wärmebrücken', solarGains: 'Solare Gewinne', internalGains: 'Interne Gewinne', usableGains: 'nutzbar',
       endByUse: 'Endenergie nach Verwendung', heatUse: 'Heizung', dhwUse: 'Warmwasser', coolUse: 'Kühlung', auxUse: 'Hilfsenergie & Beleuchtung', pvSelf: 'PV-Eigenstrom',
       lcaTitle: 'Ökobilanz über 50 Jahre', byPhase: 'nach Lebensphase', byElement: 'nach Bauteil', phaseA: 'Herstellung (A1–A3)', phaseB4: 'Austausch (B4)', phaseB6: 'Betrieb (B6)', phaseC: 'Entsorgung (C3–C4)',
@@ -107,8 +107,8 @@
       disclaimer: 'Überschlägige Abschätzung für Entwurf und Lehre. Ersetzt keinen Energieausweis, keine Berechnung nach DIN V 18599 und keine Ökobilanz nach EN 15978.',
     },
     en: {
-      appName: 'Ökobilanz-Check',
-      tagline: 'Energy efficiency and life cycle assessment for architecture projects',
+      appName: 'Greenprint',
+      tagline: 'Energy efficiency and life cycle assessment for your project planning',
       openProject: 'Open project', saveProject: 'Save project', newProject: 'New project', loadExample: 'Load example',
       step1: 'Project & plans', step2: 'Read', step3: 'Check values', step4: 'Results', step5: 'Variants',
       exampleBanner: 'Example project: apartment building, new build, 4 storeys, masonry, Oldenburg. These are example values, not your data.',

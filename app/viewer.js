@@ -1,4 +1,4 @@
-/* Ökobilanz-Check – 3D-/BIM-Import und Ansicht (three.js, web-ifc) */
+/* Greenprint – 3D-/BIM-Import und Ansicht (three.js, web-ifc) */
 (function () {
   'use strict';
   const LIBS = {

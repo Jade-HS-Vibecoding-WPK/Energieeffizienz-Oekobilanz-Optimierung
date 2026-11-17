@@ -1,7 +1,7 @@
 # Energieeffizienz-Ökobilanz-Optimierung
 Ein bestehendes Projekt, egal ob bereits fertiggestellt oder noch in der Entwurfsphase, analysieren und Anpassungs-bzw. Optimierungsvorschläge für Bauweise sowie Materialwahl herausgeben, um eine höhere Energieeffizienz und bessere Ökobilanz zu erzielen.
 
-## Web-App „Ökobilanz-Check“
+## Web-App „Greenprint“
 
 **Online öffnen:** https://claude.ai/artifact/YChJDwMuERSuFfqSoLoAUg
 (privat – nur für Personen sichtbar, mit denen der Link über „Teilen“ geteilt wurde)
