@@ -16,7 +16,7 @@ Du lädst einen oder mehrere **Pläne** oder ein **3D-/BIM-Modell** (IFC, OBJ, g
 4. einen **Vorher/Nachher-Vergleich** und einen **Variantenvergleich** (bis zu 3 Varianten)
 5. einen Vergleich mit **Zielwerten**: Passivhaus, Niedrigstenergie (EU), EU Level(s) und RIBA 2030
 6. einen **Projekt-Chat**, in dem du der KI Rückfragen zu deinem Projekt stellst
-7. einen **PDF-Bericht** (mit Deckblatt und Inhaltsverzeichnis) und eine **Projektdatei** zum Speichern
+7. einen **PDF-Bericht** (mit Deckblatt und Inhaltsverzeichnis) und **„Meine Projekte“**: Projekte werden automatisch im Browser gespeichert und lassen sich jederzeit wieder öffnen
 8. bei 3D-/BIM-Modellen eine **Maßnahmenliste mit Bauteil-Kennungen (IFC-GUIDs)**, mit der du jede Änderung in deinem BIM-Programm wiederfindest
 
 ---
@@ -39,7 +39,7 @@ Du lädst einen oder mehrere **Pläne** oder ein **3D-/BIM-Modell** (IFC, OBJ, g
 
 | Thema | Entscheidung |
 |---|---|
-| Name | **Greenprint** (bis 17.11.2026 „Ökobilanz-Check“), Unterzeile „Energieeffizienz und Ökobilanz für deine Projektplanung“. Kopfzeile: Logo links, Titel oben, darunter in einer Zeile Unterzeile, Projekt/Variante und Knöpfe DE/EN, „Projekt speichern“ und „+ Neues Projekt“ |
+| Name | **Greenprint** (bis 17.11.2026 „Ökobilanz-Check“), Unterzeile „Energieeffizienz und Ökobilanz für deine Projektplanung“. Kopfzeile: Logo links, Titel oben, darunter in einer Zeile Unterzeile, Projekt/Variante und Knöpfe DE/EN, „Meine Projekte“ und „+ Neues Projekt“ |
 | Akzentfarbe | **Waldgrün** |
 | Schrift | **Nunito** für die ganze App (Überschriften, Texte, Zahlen) |
 | Hintergrund | **Grauer Grund** (leicht grünlich abgestimmt), Kacheln heller darauf |
@@ -78,7 +78,7 @@ Du lädst einen oder mehrere **Pläne** oder ein **3D-/BIM-Modell** (IFC, OBJ, g
 | Thema | Entscheidung |
 |---|---|
 | Varianten | **Bis zu 3 Varianten** (A, B, C) nebeneinander |
-| Speichern | **Projektdatei**: Alle Werte und Varianten werden als kleine Datei auf deinem Rechner gespeichert, ohne die Pläne. Später kannst du sie wieder öffnen. |
+| Speichern | **„Meine Projekte“ im Browser** (seit 18.11.2026, statt der früheren `.json`-Projektdatei): Die App speichert automatisch, während du arbeitest, ohne Benutzerkonto. Gespeichert wird nur in diesem Browser auf diesem Gerät. Ein Online-Konto mit Speicher (z. B. Supabase) wäre später möglich, wurde aber bewusst nicht umgesetzt. |
 | Export | **PDF-Bericht** (die Excel-Tabelle wurde am 18.11.2026 entfernt) |
 | Projekt-Chat | **Ja**, als **Reiter am rechten Bildschirmrand** auf jeder Seite (am Handy unten rechts). Ein Klick öffnet ein Chat-Fenster, die KI kennt die aktuellen Werte deines Projekts. |
 | KI-Einstellungen | über die **KI-Statuszeile in der Fußzeile** (bzw. „KI einrichten“, wenn keine KI aktiv ist) |
@@ -102,7 +102,15 @@ Du lädst einen oder mehrere **Pläne** oder ein **3D-/BIM-Modell** (IFC, OBJ, g
  ① Projekt & Pläne  →  ② KI liest die Pläne  →  ③ Werte prüfen  →  ④ Ergebnis & Vorschläge  →  ⑤ Varianten
 ```
 
-Oben zeigt eine Fortschrittsleiste den aktuellen Schritt. Mit einem Klick auf einen Schritt springst du zurück. Oben rechts gibt es die Knöpfe **DE/EN**, **Projekt speichern** und **+ Neues Projekt**. („Projekt öffnen“ wurde am 18.11.2026 entfernt.)
+Oben zeigt eine Fortschrittsleiste den aktuellen Schritt. Mit einem Klick auf einen Schritt springst du zurück. Oben rechts gibt es die Knöpfe **DE/EN**, **Meine Projekte** und **+ Neues Projekt**. Unter dem Projektnamen steht klein, wann zuletzt automatisch gespeichert wurde.
+
+**Meine Projekte** (Fenster)
+- Liste aller gespeicherten Projekte, das neueste oben. Jede Zeile zeigt die Effizienzklasse als farbiges Kästchen, den Namen, „zuletzt gespeichert“ mit Datum und Uhrzeit, die Anzahl der Varianten und die Endenergie. Das geöffnete Projekt ist grün umrandet.
+- Knöpfe je Projekt: **Öffnen**, **Kopie** (legt „… (Kopie)“ an) und **✕ Löschen** (erst nach Rückfrage „Wirklich löschen?“). Oben: **+ Neues Projekt**.
+- Ohne Projekte steht dort: „Noch keine eigenen Projekte vorhanden. Sobald du ein Projekt bearbeitest, erscheint es hier.“
+- Darunter vier kurze Hinweise: speichert automatisch · nur in diesem Browser, nicht online · 3D-Modelle und Pläne werden nicht gespeichert, alle Werte bleiben erhalten · beim Löschen der Browserdaten sind die Projekte weg, zum Aufbewahren dient der PDF-Bericht.
+- Das unveränderte Beispielprojekt wird erst gespeichert, wenn du etwas änderst. Beim nächsten Öffnen der App ist das zuletzt bearbeitete Projekt wieder da.
+- „Projekt öffnen“, „Projekt speichern“ und die `.json`-Projektdatei wurden am 18.11.2026 entfernt.
 
 ### ① Projekt & Pläne
 - **Zwei Wege:** „Pläne hochladen“ oder „3D-/BIM-Modell hochladen“. Beides lässt sich kombinieren, z. B. ein IFC-Modell plus ein Detailplan mit Wandaufbau.
@@ -322,7 +330,7 @@ Beim Einlesen zeigt ein Ladebalken den Fortschritt, ebenso bei „Materialnamen 
 - Auf jeder Seite gibt es am rechten Rand den Reiter „Frag zu deinem Projekt“ (am Handy unten rechts). Ein Klick öffnet ein Chat-Fenster über der Seite, „×“ oder Esc schließt es.
 - Die KI bekommt alle Werte, Ergebnisse und Vorschläge des Projekts mitgeschickt (die Pläne nicht noch einmal, um Kontingent zu sparen) und antwortet in der gewählten Sprache.
 - Beispielfragen als Knöpfe: „Was bringt Holzbau?“, „Welche Maßnahme lohnt sich zuerst?“, „Erklär mir den U-Wert der Außenwand“.
-- Der Chat-Verlauf bleibt, solange die App geöffnet ist. Er wird nicht in der Projektdatei gespeichert.
+- Der Chat-Verlauf bleibt, solange die App geöffnet ist. Er wird nicht unter „Meine Projekte“ gespeichert (die KI-Erklärungen zu den Vorschlägen schon).
 
 ---
 
@@ -371,7 +379,7 @@ Stand 17.11.2026: Der ursprüngliche Stil (eckig, feine Linien, Space Grotesk/In
 - **Formen:** große Rundungen: Kacheln 28 px, Karten 20 px, Eingabefelder 12 px, Knöpfe, Schrittleiste und Kennzeichen pillenförmig. Weiche Flächen statt Rahmenlinien.
 - **Bento-Grid:** Auf der Ergebnisseite sind die Kacheln unterschiedlich groß (z. B. 5, 7 oder 12 von 12 Spalten). Die Hingucker-Kachel steht oben links. Auf dem Handy stapeln sich alle Kacheln untereinander.
 - **Symbole:** feine Liniensymbole, selbst gezeichnet.
-- **Kopfzeile:** großes Logo, Titel „Greenprint“ bündig mit der Logo-Oberkante, darunter in einer Zeile Unterzeile (Grundlinie bündig mit der Logo-Unterkante), Projekt/Variante, DE/EN, „Projekt speichern“ und der hervorgehobene Knopf „+ Neues Projekt“.
+- **Kopfzeile:** großes Logo, Titel „Greenprint“ bündig mit der Logo-Oberkante, darunter in einer Zeile Unterzeile (Grundlinie bündig mit der Logo-Unterkante), Projekt/Variante mit Speicherstatus, DE/EN, „Meine Projekte“ und der hervorgehobene Knopf „+ Neues Projekt“.
 - **Fußzeile:** Hinweis zur Genauigkeit, Glossar, Annahmen & Quellen und die KI-Statuszeile (klickbar → KI-Einstellungen).
 - **Intro:** „Greenprint wird gezeichnet“ auf zartem Plan-Raster, einmal pro Browser-Tab, überspringbar; bei „Bewegung reduzieren“ nur kurz das fertige Bild.
 - **Mauszeiger und Fußspur:** siehe Tabelle in 2.2; auf Handy/Tablet ohne Wirkung, die Spur entfällt bei „Bewegung reduzieren“.
@@ -401,10 +409,10 @@ Du musst hier nichts selbst tun. Dieser Abschnitt erklärt nur, woraus die App b
   - *three.js* zeigt das 3D-Modell im Browser an und liest OBJ- und glTF-Dateien.
   - *web-ifc* liest IFC-Dateien. Es braucht eine Zusatzdatei (`web-ifc.wasm`, ein schneller Programmbaustein), die zusammen mit der App veröffentlicht wird.
   - *Tailwind CSS* (3.4.17) übernimmt Raster, Abstände und Schrift des Bento-Designs. Der Teil, der alle vorhandenen Stile zurücksetzt („Preflight“), ist abgeschaltet, damit Formulare und Tabellen ihre eigenen Stile behalten.
-- **Speichern und Herunterladen:** Über die Download-Funktion von claude.ai, die vor jedem Speichern kurz nachfragt. Das gilt für den PDF-Bericht, die Maßnahmenliste und die Projektdatei (`.json`).
+- **Speichern und Herunterladen:** Über die Download-Funktion von claude.ai, die vor jedem Speichern kurz nachfragt. Das gilt für den PDF-Bericht und die Maßnahmenliste. Projekte liegen unter „Meine Projekte“ im Speicher des Browsers (`localStorage`).
 - **Diagramme und Symbole** werden direkt in der App gezeichnet. Die App ist immer hell.
 - **Zweisprachig:** Alle Texte liegen auf Deutsch und Englisch vor. Die KI antwortet in der gewählten Sprache.
-- **Datenschutz:** Pläne werden nicht gespeichert, sie gehen nur zur Analyse an Claude. Die Projektdatei enthält nur Zahlen und Texte und liegt bei dir.
+- **Datenschutz:** Pläne werden nicht gespeichert, sie gehen nur zur Analyse an Claude. „Meine Projekte“ enthält nur Zahlen und Texte und bleibt in deinem Browser, es wird nichts an einen Server geschickt.
 - **Ablage** (lokal und auf GitHub):
   ```
   Energieeffizienz-Oekobilanz-Optimierung/
@@ -434,7 +442,7 @@ Du musst hier nichts selbst tun. Dieser Abschnitt erklärt nur, woraus die App b
 | 5 | **Ergebnisseite:** Kennzahlen, Diagramme, Zielwerte, Vorschläge, Vorher/Nachher, Rechenweg, Glossar | vollständige Auswertung |
 | 6 | **KI:** Pläne lesen, Vorschläge erklären, Projekt-Chat | App liest echte Pläne |
 | 6a | **3D/BIM:** IFC- und OBJ/glTF-Import, Bauteilerkennung, 3D-Ansicht, farbige Auswertung, Anklicken & Ändern, Vorschläge und Varianten am Modell | App liest Modelle |
-| 7 | **Varianten, Speichern und Export:** Variantenvergleich, Projektdatei, PDF-Bericht mit Deckblatt und Inhaltsverzeichnis, Maßnahmenliste mit GUIDs | vollständige App |
+| 7 | **Varianten, Speichern und Export:** Variantenvergleich, „Meine Projekte“ im Browser, PDF-Bericht mit Deckblatt und Inhaltsverzeichnis, Maßnahmenliste mit GUIDs | vollständige App |
 | 8 | **Testen:** Rechenwerte gegenprüfen, Test-IFC- und OBJ-Modelle, Handy- und Dunkelmodus, beide Sprachen | geprüfte App |
 | 9 | **Veröffentlichen** als Online-Link, Dateien in den lokalen Ordner legen, README ergänzen | Link und Dateien im Ordner |
 

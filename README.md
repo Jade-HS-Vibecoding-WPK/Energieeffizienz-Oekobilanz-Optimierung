@@ -15,7 +15,9 @@ Zusätzlich als private claude.ai-Version: https://claude.ai/artifact/YChJDwMuER
 4. **Ergebnis:** Effizienzklasse, Energiebilanz, Ökobilanz über 50 Jahre (A1–A3, B4, B6, C3–C4), Zielwerte (Passivhaus, NZEB, Level(s), RIBA 2030), Optimierungsvorschläge mit Kosten und Amortisation, Vorher/Nachher, Projekt-Chat, 3D-Auswertung.
 5. **Varianten:** bis zu 3 Varianten vergleichen.
 
-Export: PDF-Bericht (A4 mit Deckblatt, Inhaltsverzeichnis und Fußzeile), Maßnahmenliste mit IFC-GUIDs, Projektdatei (.json).
+Export: PDF-Bericht (A4 mit Deckblatt, Inhaltsverzeichnis und Fußzeile), Maßnahmenliste mit IFC-GUIDs.
+
+**Meine Projekte:** Projekte werden automatisch im Browser gespeichert (nur auf diesem Gerät, ohne Konto) und lassen sich über „Meine Projekte“ wieder öffnen, kopieren oder löschen.
 
 > Überschlägige Abschätzung für Entwurf und Lehre – ersetzt keinen Energieausweis, keine Berechnung nach DIN V 18599 und keine Ökobilanz nach EN 15978.
 
@@ -31,7 +33,7 @@ app/
 ├── ai.js         KI-Anfragen (Plan lesen, Erklärungen, Chat)
 ├── ai-openrouter.js  KI über OpenRouter mit eigenem API-Key (lokale Version)
 ├── viewer.js     3D-/BIM-Import und -Ansicht (three.js, web-ifc)
-├── export.js     PDF-Bericht, Maßnahmenliste, Projektdatei
+├── export.js     PDF-Bericht, Maßnahmenliste
 └── web-ifc.wasm  Baustein zum Lesen von IFC-Dateien (web-ifc 0.0.66, MPL-2.0)
 ```
 ### KI über OpenRouter (Live-Demo und lokal)
