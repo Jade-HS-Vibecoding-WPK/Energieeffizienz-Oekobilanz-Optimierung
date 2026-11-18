@@ -148,6 +148,7 @@
   function render() {
     renderHeader(); renderSteps(); renderMain(); renderFooter(); renderChat();
     afterRender();
+    if (App.conPick || $('#conPick')) renderConPick();
   }
   function renderHeader() {
     const h = $('header.titleblock');
@@ -161,7 +162,6 @@
       <div class="tb-project"><span class="label">${t('project')} · ${t('variant')} ${esc(st.name)}</span><span class="v">${esc(App.meta.project || (st.example ? t('loadExample') : '–'))}</span></div>
       <div class="tb-actions">
         <div class="lang" role="group" aria-label="Sprache / Language"><button data-act="lang" data-v="de" aria-pressed="${I.lang === 'de'}">DE</button><button data-act="lang" data-v="en" aria-pressed="${I.lang === 'en'}">EN</button></div>
-        <button class="btn small" data-act="openProject">${icon('file', 14)}${t('openProject')}</button>
         <button class="btn small" data-act="saveProject">${icon('download', 14)}${t('saveProject')}</button>
         <button class="btn primary newproj" data-act="newProject">${icon('plus', 16)}${t('newProject')}</button>
         <input type="file" id="projFile" accept=".json,application/json" hidden>
@@ -301,13 +301,97 @@
       <div class="card progress">${lines}${p.running && p.chars ? `<div class="xs muted">${t('aiWriting')} ${fmt(p.chars)} Zeichen</div>` : ''}${p.running ? '<div class="bar"><i style="width:35%"></i></div>' : ''}</div>
       ${counts}
       ${p.summary ? `<div class="card stack"><h4>${t('aiSummary')}</h4><p>${esc(p.summary)}</p>${p.uncertainties && p.uncertainties.length ? `<h4>${t('uncertainties')}</h4><ul class="small">${p.uncertainties.map(u => `<li>${esc(u)}</li>`).join('')}</ul>` : ''}</div>` : ''}
-      ${p.matNames && p.matNames.length && App.sample ? `<div class="card row" style="justify-content:space-between"><span class="small">${p.matNames.length} Materialnamen ohne Zuordnung: ${esc(p.matNames.slice(0, 6).join(', '))}${p.matNames.length > 6 ? ' …' : ''}</span><button class="btn small" data-act="mapMaterials">${t('mapMaterials')}</button></div>` : ''}
+      ${p.matNames && p.matNames.length && App.sample ? `<div class="card row" style="justify-content:space-between"><span class="small">${p.matNames.length} Materialnamen ohne Zuordnung: ${esc(p.matNames.slice(0, 6).join(', '))}${p.matNames.length > 6 ? ' …' : ''}</span><button class="btn small" data-act="mapMaterials" ${App.busy === 'map' ? 'disabled aria-busy="true"' : ''}>${App.busy === 'map' ? '<span class="spinner"></span>' : ''}${t('mapMaterials')}</button>${App.busy === 'map' ? `<div style="flex-basis:100%;display:flex;flex-direction:column;gap:6px" role="status"><span class="xs muted">${I.lang === 'en' ? 'The AI is matching the material names to the database …' : 'Die KI ordnet die Materialnamen der Materialdatenbank zu …'}</span><div class="bar"><i></i></div></div>` : ''}</div>` : ''}
       ${p.error ? `<div class="card" style="border-color:var(--bad)"><p class="st-fail">${esc(p.error)}</p></div>` : ''}
       <div class="row end"><button class="btn" data-act="step" data-v="1">${t('back')}</button>${p.error && !p.running ? `<button class="btn" data-act="analyze">${t('retry')}</button>` : ''}<button class="btn primary" data-act="step" data-v="3" ${p.running ? 'disabled' : ''}>${t('toCheck')}</button></div>
     </section>`;
   }
 
   // ---------- Schritt 3 ----------
+  // ---------- Aufbau-Auswahl: Liste beim Klick, Infofenster mit Schichtaufbau beim Überfahren ----------
+  const cmTxt = d => { const v = d * 100; return fmt(v, Math.abs(v - Math.round(v)) < 0.05 ? 0 : 1) + ' cm'; };
+  function conInfoHtml(e, conId) {
+    const en = I.lang === 'en';
+    const isCustom = conId === 'custom';
+    const ls = isCustom ? (e.con === 'custom' ? K.layersOf(e) : K.layersOf({ con: e.con })) : K.layersOf({ con: conId });
+    const U = ['AW', 'DA', 'BO'].includes(e.kind) ? K.uValue(e.kind, ls) : null;
+    const total = ls.reduce((s, l) => s + (+l.d || 0), 0);
+    const dir = e.kind === 'AW' || e.kind === 'IW' ? (en ? 'outside → inside' : 'außen → innen') : (en ? 'top → bottom' : 'oben → unten');
+    const title = isCustom ? t('customLayers') : nm(D.CON[conId]);
+    const src = isCustom
+      ? (e.con === 'custom' ? (e.src === 'model' && e.ifcLayers ? (en ? 'Taken from the model' : 'Aus dem Modell übernommen') : (en ? 'Your own layers' : 'Deine eigenen Schichten')) : (en ? 'Starts from the current build-up – opens the layer editor' : 'Startet mit dem aktuellen Aufbau – öffnet den Schicht-Editor'))
+      : (en ? 'Standard build-up' : 'Standardaufbau');
+    const rows = ls.map((l, i) => { const m = D.MAT[l.mat] || {}; return `<tr><td class="muted">${i + 1}</td><td>${esc(nm(m) || l.mat)}</td><td class="n num">${cmTxt(l.d)}</td><td class="n num muted">${m.lambda != null ? fmt(m.lambda, 3) : ''}</td></tr>`; }).join('');
+    return `<div class="ci-head"><strong>${esc(title)}</strong><span class="xs muted">${src}</span></div>
+      <table class="ci-table"><thead><tr><th>#</th><th>${t('material')} <span class="muted" style="text-transform:none">(${dir})</span></th><th class="n">${t('thickness')}</th><th class="n" style="text-transform:none">λ</th></tr></thead><tbody>${rows || `<tr><td colspan="4" class="muted">–</td></tr>`}</tbody></table>
+      <div class="ci-foot small"><span>${en ? 'Total' : 'Gesamt'} <b class="num">${cmTxt(total)}</b></span>${U != null ? `<span>U = <b class="num">${fmt(U, 2)}</b> W/m²K</span>` : ''}</div>`;
+  }
+  function renderConPick() {
+    let box = $('#conPick');
+    const p = App.conPick;
+    const e = p && cur().elements.find(x => x.id === p.id);
+    const btn = e && document.querySelector(`.conpick-btn[data-id="${p.id}"]`);
+    if (!e || !btn || App.step !== 3) { if (box) box.remove(); App.conPick = null; return; }
+    if (!box) { box = document.createElement('div'); box.id = 'conPick'; box.className = 'conpick'; document.body.appendChild(box); }
+    const opts = D.CONSTRUCTIONS.filter(c => c.kind === e.kind).map(c => c.id).concat('custom');
+    const hov = p.hover || e.con;
+    box.innerHTML = `<div class="cp-list" role="listbox" aria-label="${esc(t('construction'))}">${opts.map(id => `<button type="button" role="option" class="cp-opt ${id === hov ? 'hov' : ''}" aria-selected="${id === e.con}" data-act="conPickSelect" data-con="${id}">${id === e.con ? icon('check', 14) : '<span class="cp-sp"></span>'}<span>${esc(id === 'custom' ? t('customLayers') + ' …' : nm(D.CON[id]))}</span></button>`).join('')}</div>
+      <div class="cp-info" aria-live="polite">${conInfoHtml(e, hov)}</div>`;
+    placeConPick();
+  }
+  // Lage: unter dem Feld (oder darüber, wenn unten kein Platz ist); Infofenster rechts daneben, sonst links bzw. darunter
+  function placeConPick() {
+    const box = $('#conPick'), p = App.conPick;
+    const btn = box && p && document.querySelector(`.conpick-btn[data-id="${p.id}"]`);
+    if (!btn) { closeConPick(false); return; }
+    const r = btn.getBoundingClientRect(), vw = innerWidth, vh = innerHeight;
+    const listW = Math.min(Math.max(r.width, 300), vw - 16), INFO = 340, GAP = 8;
+    const listL = Math.max(8, Math.min(r.left, vw - listW - 8));
+    let mode = 'right', left = listL;
+    if (listL + listW + GAP + INFO > vw - 8) {
+      if (listL - GAP - INFO >= 8) { mode = 'left'; left = listL - GAP - INFO; } // Infofenster links neben der Liste
+      else mode = 'below';
+    }
+    box.style.left = left + 'px';
+    const below = vh - r.bottom > 260 || r.top < vh / 2;
+    box.style.top = below ? (r.bottom + 6) + 'px' : 'auto';
+    box.style.bottom = below ? 'auto' : (vh - r.top + 6) + 'px';
+    box.style.setProperty('--list-w', listW + 'px');
+    box.classList.toggle('info-left', mode === 'left');
+    box.classList.toggle('info-below', mode === 'below');
+    btn.setAttribute('aria-expanded', 'true');
+  }
+  function closeConPick(focus) {
+    const id = App.conPick && App.conPick.id;
+    App.conPick = null; const box = $('#conPick'); if (box) box.remove();
+    const b = id && document.querySelector(`.conpick-btn[data-id="${id}"]`);
+    if (b) { b.setAttribute('aria-expanded', 'false'); if (focus) b.focus(); }
+  }
+  // Überfahren / Tastaturfokus eines Eintrags → Infofenster zeigt diesen Aufbau
+  const conHover = ev => {
+    const o = ev.target.closest && ev.target.closest('#conPick .cp-opt');
+    if (!o || !App.conPick || App.conPick.hover === o.dataset.con) return;
+    App.conPick.hover = o.dataset.con;
+    const e = cur().elements.find(x => x.id === App.conPick.id); if (!e) return;
+    $('#conPick .cp-info').innerHTML = conInfoHtml(e, o.dataset.con);
+    document.querySelectorAll('#conPick .cp-opt').forEach(b => b.classList.toggle('hov', b === o));
+  };
+  document.addEventListener('mouseover', conHover);
+  document.addEventListener('focusin', conHover);
+  document.addEventListener('mousedown', ev => { if (App.conPick && !ev.target.closest('#conPick') && !ev.target.closest('.conpick-btn')) closeConPick(false); });
+  document.addEventListener('keydown', ev => {
+    if (!App.conPick) return;
+    if (ev.key === 'Escape') { ev.stopPropagation(); closeConPick(true); return; }
+    if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp') {
+      const os = [...document.querySelectorAll('#conPick .cp-opt')]; if (!os.length) return;
+      ev.preventDefault();
+      const i = os.indexOf(document.activeElement);
+      os[ev.key === 'ArrowDown' ? (i + 1) % os.length : (i <= 0 ? os.length - 1 : i - 1)].focus();
+    }
+  }, true);
+  window.addEventListener('resize', () => { if (App.conPick) placeConPick(); });
+  window.addEventListener('scroll', ev => { if (App.conPick && !(ev.target.closest && ev.target.closest('#conPick'))) placeConPick(); }, true);
+
   function conOptions(kind, sel) {
     return D.CONSTRUCTIONS.filter(c => c.kind === kind).map(c => `<option value="${c.id}" ${c.id === sel ? 'selected' : ''}>${esc(nm(c))}</option>`).join('') + `<option value="custom" ${sel === 'custom' ? 'selected' : ''}>${t('customLayers')} …</option>`;
   }
@@ -342,7 +426,7 @@
         <td><input type="text" data-elf="${e.id}" data-f="name" value="${esc(e.name || '')}" aria-label="${t('name')}"></td>
         <td>${e.kind === 'AW' ? `<div class="row" style="flex-wrap:nowrap;gap:4px"><input type="number" step="15" data-elf="${e.id}" data-f="az" value="${esc(e.az != null ? Math.round(e.az) : 180)}" style="width:70px" aria-label="Azimut"><span class="chip">${orientLabel(e.az)}</span></div>` : '<span class="muted">–</span>'}</td>
         <td class="n"><input type="number" step="1" min="0" data-elf="${e.id}" data-f="area" value="${esc(Math.round(e.area * 10) / 10)}" aria-label="${t('area')}"></td>
-        <td><select data-elf="${e.id}" data-f="con" aria-label="${t('construction')}">${conOptions(e.kind, e.con)}</select></td>
+        <td><button type="button" class="conpick-btn" data-act="conPickOpen" data-id="${e.id}" aria-haspopup="listbox" aria-expanded="${App.conPick && App.conPick.id === e.id}" aria-label="${t('construction')}"><span>${esc(conLabel(e))}${e.con === 'custom' ? ' …' : ''}</span>${icon('chev', 14)}</button></td>
         <td class="n num">${U != null ? fmt(U, 2) : '–'}</td>
         <td><input type="checkbox" data-elf="${e.id}" data-f="existing" ${e.existing ? 'checked' : ''} aria-label="${t('existing')}"></td>
         <td class="row" style="flex-wrap:nowrap;gap:2px"><button class="iconbtn" data-act="toggleLayers" data-id="${e.id}" title="${t('layers')}" aria-label="${t('layers')}">${icon('layers', 16)}</button><button class="iconbtn" data-act="delElement" data-id="${e.id}" aria-label="${t('delete')}">${icon('x', 16)}</button></td></tr>
@@ -481,7 +565,7 @@
     const exA = r.exA13 > 0 || st.mode === 'existing';
 
     return `<section class="section"><div class="section-head"><h2>${t('s4Title')}</h2>
-      <div class="row"><button class="btn small" data-act="exportPdf" ${App.busy ? 'disabled' : ''}>${icon('download', 14)} ${App.busy === 'pdf' ? t('generating') : t('exportPdf')}</button><button class="btn small" data-act="exportXlsx" ${App.busy ? 'disabled' : ''}>${icon('download', 14)} ${App.busy === 'xlsx' ? t('generating') : t('exportXlsx')}</button>${VW.hasModel ? `<button class="btn small" data-act="exportGuid" ${App.busy ? 'disabled' : ''}>${icon('download', 14)} ${t('exportGuid')}</button>` : ''}<button class="btn small primary" data-act="newVariant" ${App.variants.length >= 3 ? 'disabled' : ''}>${icon('variants', 14)} ${t('newVariant')}</button></div></div></section>
+      <div class="row"><button class="btn small" data-act="exportPdf" ${App.busy ? 'disabled' : ''}>${icon('download', 14)} ${App.busy === 'pdf' ? t('generating') : t('exportPdf')}</button>${VW.hasModel ? `<button class="btn small" data-act="exportGuid" ${App.busy ? 'disabled' : ''}>${icon('download', 14)} ${t('exportGuid')}</button>` : ''}<button class="btn small primary" data-act="newVariant" ${App.variants.length >= 3 ? 'disabled' : ''}>${icon('variants', 14)} ${t('newVariant')}</button></div></div></section>
     <div class="grid grid-cols-1 md:grid-cols-6 lg:grid-cols-12 gap-4 grid-flow-dense">
       <div class="bento hero col-span-1 md:col-span-6 lg:col-span-5"><div class="hero-ring"></div>
         <div class="flex items-start justify-between gap-3"><span class="eyebrow">${t('endEnergy')} ${help(GL.end)}</span><span class="eyebrow">${esc(nm(r.cl.loc))}</span></div>
@@ -667,7 +751,7 @@
     const best = (vals, low) => { const b = low ? Math.min(...vals) : Math.max(...vals); return vals.map(v => v === b && vals.length > 1); };
     const g = (label, vals, unit, dec, low) => `<div class="card">${CH.grouped(App.variants.map(v => v.name), [{ name: label, values: vals, color: S.accent, mark: best(vals, low) }], { unit, dec, h: 210, w: 320 })}</div>`;
     return `<section class="section"><div class="section-head"><h2>${t('s5Title')}</h2>
-      <div class="row"><button class="btn small" data-act="exportPdf" ${App.busy ? 'disabled' : ''}>${icon('download', 14)} ${App.busy === 'pdf' ? t('generating') : t('exportPdf')}</button><button class="btn small" data-act="exportXlsx" ${App.busy ? 'disabled' : ''}>${icon('download', 14)} ${App.busy === 'xlsx' ? t('generating') : t('exportXlsx')}</button>${VW.hasModel ? `<button class="btn small" data-act="exportGuid" ${App.busy ? 'disabled' : ''}>${icon('download', 14)} ${t('exportGuid')}</button>` : ''}</div></div>
+      <div class="row"><button class="btn small" data-act="exportPdf" ${App.busy ? 'disabled' : ''}>${icon('download', 14)} ${App.busy === 'pdf' ? t('generating') : t('exportPdf')}</button>${VW.hasModel ? `<button class="btn small" data-act="exportGuid" ${App.busy ? 'disabled' : ''}>${icon('download', 14)} ${t('exportGuid')}</button>` : ''}</div></div>
       <p class="muted small">${t('s5Intro')}</p>
       <div class="grid g3">${cards}${App.variants.length < 3 ? `<button class="vcard" data-act="dupVariant" data-i="${App.active}" style="cursor:pointer;align-items:center;justify-content:center;color:var(--accent)">${icon('plus', 22)}<span>${t('newVariant')}</span></button>` : ''}</div>
       <p class="xs muted">${I.lang === 'en' ? 'Each variant includes its selected measures.' : 'Jede Variante inklusive ihrer gewählten Maßnahmen.'}</p>
@@ -800,9 +884,12 @@
     const parts = VW.parts;
     const groups = new Map();
     const mode = st.mode === 'existing' ? 'existing' : 'new';
+    const keyOf = new Map(); // Teil → Gruppe (für Schichtwände, die zu einer Außenwand gehören)
+    const subs = [];
     info.parts.forEach(p => {
       const idx = parts.indexOf(p.part);
       if (idx < 0) return;
+      if (p.hostOf) { subs.push([p, idx]); return; }
       const az = p.az != null ? (p.az + north + 360) % 360 : null;
       const ok = az != null ? K.orientKey(az) : '';
       const sig = p.layers && p.layers.length ? p.layers.map(l => l.name + ':' + l.d).join('|') : p.uval ? 'u' + p.uval : (p.kind === 'FE' ? 'win' : 'none');
@@ -811,8 +898,11 @@
       if (p.kind === 'DA' && p.flat) gr.flatA += p.area || 0;
       gr.area += p.area || 0; gr.parts.push(idx); if (p.guid) gr.guids.push(p.guid); if (p.name) gr.names.add(p.name);
       if (az != null) { gr.ax += Math.sin(az * Math.PI / 180) * (p.area || 1); gr.az += Math.cos(az * Math.PI / 180) * (p.area || 1); }
-      groups.set(key, gr);
+      if (p.stacked) gr.stacked = Math.max(gr.stacked || 0, p.stacked);
+      groups.set(key, gr); keyOf.set(p, key);
     });
+    // innere Schichtwände: nur fürs 3D-Modell/die GUID-Liste der Außenwand zuordnen, keine eigene Fläche
+    subs.forEach(([p, idx]) => { const gr = groups.get(keyOf.get(p.hostOf)); if (!gr) return; gr.parts.push(idx); if (p.guid) gr.guids.push(p.guid); });
     const els = [], wins = [];
     groups.forEach(gr => {
       const az = gr.ax || gr.az ? ((Math.atan2(gr.ax, gr.az) * 180 / Math.PI) + 360) % 360 : null;
@@ -829,7 +919,11 @@
         e.ifcLayers = gr.layers;
         const mapped = gr.layers.map(l => ({ mat: VW.matchMaterial(l.name) || (App.matMap || {})[l.name] || null, d: l.d }));
         if (mapped.every(l => l.mat && l.d > 0)) { e.layers = mapped.map(l => ({ mat: l.mat, d: l.d, th: true })); e.con = 'custom'; e.conn = 'teilweise'; e.conf = 'hoch'; }
-        else e.conf = 'mittel';
+        else {
+          e.conf = 'mittel';
+          // Schichten nicht vollständig erkannt → wenigstens über den U-Wert aus dem Modell den passendsten Aufbau wählen
+          if (gr.uval) { const cands = D.CONSTRUCTIONS.filter(c => c.kind === gr.kind); if (cands.length) e.con = cands.reduce((b, c) => (Math.abs(K.uValue(c.kind, c.layers) - gr.uval) < Math.abs(K.uValue(b.kind, b.layers) - gr.uval) ? c : b), cands[0]).id; }
+        }
       } else if (gr.uval) {
         const cands = D.CONSTRUCTIONS.filter(c => c.kind === gr.kind);
         e.con = cands.reduce((b, c) => (Math.abs(K.uValue(c.kind, c.layers) - gr.uval) < Math.abs(K.uValue(b.kind, b.layers) - gr.uval) ? c : b), cands[0]).id;
@@ -1107,6 +1201,25 @@
     delVariant: el => { const i = +el.dataset.i; if (App.variants.length <= 1) return; App.variants.splice(i, 1); App.active = Math.min(App.active, App.variants.length - 1); render(); },
     exportPdf: () => doExport('pdf'), exportXlsx: () => doExport('xlsx'), exportGuid: () => doExport('guid'),
     aiSettings: () => openAiSettings(),
+    conPickOpen: el => {
+      if (App.conPick && App.conPick.id === el.dataset.id) { closeConPick(true); return; }
+      App.conPick = { id: el.dataset.id, hover: null };
+      renderConPick();
+      const s = document.querySelector('#conPick .cp-opt[aria-selected="true"]') || document.querySelector('#conPick .cp-opt');
+      if (s) s.focus({ preventScroll: true });
+    },
+    conPickSelect: el => {
+      const ent = App.conPick && cur().elements.find(x => x.id === App.conPick.id); if (!ent) { closeConPick(false); return; }
+      const v = el.dataset.con;
+      // gleiche Logik wie bisher bei der Auswahlliste
+      if (v === 'custom') { if (ent.con !== 'custom') { ent.layers = K.clone(K.layersOf(ent)); ent.conn = K.connOf(ent); ent.con = 'custom'; } App.open['L' + ent.id] = true; }
+      else { ent.con = v; delete ent.layers; delete ent.conn; }
+      ent.conf = ent.conf === 'niedrig' || ent.conf === 'mittel' ? 'hoch' : ent.conf; ent.src = ent.src === 'example' ? 'example' : (v === 'custom' && ent.src === 'model' ? 'model' : 'manual');
+      const id = ent.id;
+      App.conPick = null; const box = $('#conPick'); if (box) box.remove();
+      render();
+      const b = document.querySelector(`.conpick-btn[data-id="${id}"]`); if (b) b.focus();
+    },
     cursorToggle: () => {
       App.plainCursor = !App.plainCursor;
       document.documentElement.classList.toggle('plain-cursor', App.plainCursor);

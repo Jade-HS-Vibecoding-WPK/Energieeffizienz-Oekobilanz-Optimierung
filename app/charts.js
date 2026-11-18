@@ -195,6 +195,8 @@
     file: 'M6 2h9l5 5v15H6zM15 2v5h5',
     globe: 'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18',
     rotate: 'M4 12a8 8 0 1 0 2.5-5.8M4 4v4h4',
+    chev: 'M6 9l6 6 6-6',
+    check: 'M5 12l5 5 9-10',
   };
   function icon(name, size) {
     const d = P[name] || P.info;

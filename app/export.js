@@ -65,37 +65,74 @@
   }
 
   // ---------- PDF-Bericht ----------
+  // Aufbau: Deckblatt (Intro-Zeichnung, Name, Projektangaben) · Inhaltsverzeichnis · 1 Ergebnisse ·
+  // 2 Optimierungsvorschläge · (3 Variantenvergleich) · Annahmen & Quellen.
+  // Jedes Oberthema beginnt auf einer neuen Seite; Fußzeile mit Hinweisen und Seitenzahl auf jeder Seite.
+
+  // Intro-Bild „Greenprint wird gezeichnet“ im fertigen Zustand (für das Deckblatt)
+  function introSvg() {
+    const A = '#1f5a3d';
+    let grid = '';
+    for (let x = 0; x <= 220; x += 11) grid += `<line x1="${x}" y1="0" x2="${x}" y2="170" stroke="#e3ece6" stroke-width="0.5"/>`;
+    for (let y = 5; y <= 170; y += 11) grid += `<line x1="0" y1="${y}" x2="220" y2="${y}" stroke="#e3ece6" stroke-width="0.5"/>`;
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 170" width="100%">
+      <rect width="220" height="170" fill="#ffffff"/>${grid}
+      <path d="M50 140 V84 L110 34 L170 84 V140 Z" fill="${A}"/>
+      <g fill="none" stroke="${A}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 140 H206"/><path d="M50 140 V84 M170 140 V84"/><path d="M38 92 L110 30 L182 92"/>
+        <path d="M50 156 H170 M50 151 v10 M170 151 v10" stroke-width="1.2" opacity="0.6"/>
+      </g>
+      <g fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M64 100 h22 v18 h-22 Z M134 100 h22 v18 h-22 Z"/><path d="M100 140 V116 h20 V140"/>
+      </g>
+      <path d="M96 108 c0-16 10-26 28-26 c0 16-10 26-28 26 M96 108 l14-14" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>`;
+  }
+
   async function pdfReport(app, ctx) {
     await window.OBC_VIEWER.loadScript(LIB.jspdf);
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ unit: 'mm', format: 'a4' });
-    const st = ctx.st, r = ctx.res, P = CH.PRINT;
+    const st = ctx.st, r = ctx.res, P = CH.PRINT, EN = I.lang === 'en';
     const W = 210, H = 297, M = 16, CW = W - 2 * M;
-    const ACC = [31, 90, 61], FG = [29, 38, 32], MU = [95, 107, 99], LN = [200, 207, 201];
+    const BOTTOM = H - 26; // darunter liegt die Fußzeile
+    const ACC = [31, 90, 61], FG = [29, 38, 32], MU = [95, 107, 99], LN = [200, 207, 201], MINT = [232, 238, 233];
     let y = M;
     const meta = app.meta || {};
-    const pages = [];
+    const toc = []; // { lvl, title, page }
+    const loc = D.LOC[st.loc];
+    const dateStr = new Date().toLocaleDateString(EN ? 'en-GB' : 'de-DE');
+    const L = (de, en) => (EN ? en : de);
+    const subE = st.sub && ((D.BT[st.type] || {}).sub || []).find(x => x[0] === st.sub);
+    const btLabel = I.nm(D.BT[st.type]) + (st.sub ? ' / ' + (subE ? (EN ? subE[2] : subE[1]) : st.sub) : '');
 
-    function titleBlock() {
-      const bw = 112, bh = 22, bx = W - M - bw, by = H - M - bh + 6;
-      doc.setDrawColor(...FG); doc.setLineWidth(0.3); doc.rect(bx, by, bw, bh);
-      doc.line(bx, by + 8, bx + bw, by + 8); doc.line(bx + 70, by + 8, bx + 70, by + bh); doc.line(bx, by + 15, bx + bw, by + 15);
-      doc.setFontSize(7); doc.setTextColor(...MU);
-      doc.text(pdfText(t('project')), bx + 2, by + 3); doc.text(pdfText(t('author')), bx + 2, by + 10.5); doc.text(pdfText(t('school')), bx + 2, by + 17.5);
-      doc.text(pdfText(t('date')), bx + 72, by + 10.5); doc.text(pdfText(t('page')), bx + 72, by + 17.5);
-      doc.setFontSize(9); doc.setTextColor(...FG);
-      doc.text(pdfText((meta.project || t('appName')) + ' · ' + t('variant') + ' ' + (st.name || 'A')).slice(0, 70), bx + 2, by + 6.8);
-      doc.setFontSize(8);
-      doc.text(pdfText(meta.author || '–').slice(0, 40), bx + 2, by + 13.8); doc.text(pdfText(meta.school || '–').slice(0, 40), bx + 2, by + 20.8);
-      doc.text(new Date().toLocaleDateString(I.lang === 'en' ? 'en-GB' : 'de-DE'), bx + 72, by + 13.8);
-      pages.push([doc.getCurrentPageInfo().pageNumber, bx + 72, by + 20.8]);
-      doc.setFontSize(7); doc.setTextColor(...MU);
-      doc.text(pdfText(t('appName') + ' – ' + t('disclaimer')), M, H - M + 6, { maxWidth: CW - bw - 6 });
+    function addPage() { doc.addPage(); y = M; }
+    function need(h) { if (y + h > BOTTOM) addPage(); }
+    const pageNo = () => doc.getCurrentPageInfo().pageNumber;
+    // Oberthema: immer neue Seite
+    let chapNo = 0, secNo = 0;
+    function chapter(title, numbered) {
+      addPage();
+      if (numbered !== false) { chapNo++; secNo = 0; }
+      const label = numbered !== false ? `${chapNo}  ${title}` : title;
+      toc.push({ lvl: 1, title: label, page: pageNo() });
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(20); doc.setTextColor(...ACC);
+      doc.text(pdfText(label), M, y + 8); y += 13;
+      doc.setDrawColor(...ACC); doc.setLineWidth(0.6); doc.line(M, y, M + CW, y); y += 7;
+      doc.setFont('helvetica', 'normal');
     }
-    function newPage() { titleBlock(); doc.addPage(); y = M; }
-    function need(h) { if (y + h > H - M - 26) newPage(); }
-    function h1(s) { need(60); doc.setFont('helvetica', 'bold'); doc.setFontSize(16); doc.setTextColor(...ACC); doc.text(pdfText(s), M, y + 6); y += 10; doc.setDrawColor(...ACC); doc.setLineWidth(0.5); doc.line(M, y, M + CW, y); y += 5; doc.setFont('helvetica', 'normal'); }
-    function h2(s) { need(30); doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(...FG); doc.text(pdfText(s), M, y + 4); y += 7; doc.setFont('helvetica', 'normal'); }
+    // Unterkapitel: läuft auf der Seite weiter
+    function section(title) {
+      need(45);
+      secNo++;
+      const label = `${chapNo}.${secNo}  ${title}`;
+      toc.push({ lvl: 2, title: label, page: pageNo() });
+      if (y > M + 2) y += 3;
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(13); doc.setTextColor(...ACC); doc.text(pdfText(label), M, y + 5); y += 8;
+      doc.setDrawColor(...LN); doc.setLineWidth(0.3); doc.line(M, y, M + CW, y); y += 4;
+      doc.setFont('helvetica', 'normal');
+    }
+    function h2(s) { need(30); doc.setFont('helvetica', 'bold'); doc.setFontSize(10.5); doc.setTextColor(...FG); doc.text(pdfText(s), M, y + 4); y += 7; doc.setFont('helvetica', 'normal'); }
     function para(s, size) { doc.setFontSize(size || 9); doc.setTextColor(...FG); const lines = doc.splitTextToSize(pdfText(s), CW); need(lines.length * 4.2 + 2); doc.text(lines, M, y + 3); y += lines.length * 4.2 + 2; }
     function small(s) { doc.setFontSize(7.5); doc.setTextColor(...MU); const lines = doc.splitTextToSize(pdfText(s), CW); need(lines.length * 3.4 + 1); doc.text(lines, M, y + 2.5); y += lines.length * 3.4 + 2; doc.setTextColor(...FG); }
     function table(head, rows, widths, opt) {
@@ -103,23 +140,24 @@
       const tw = widths.reduce((a, b) => a + b, 0), sc = CW / tw, ws = widths.map(w => w * sc);
       const rowH = opt.rowH || 5.6;
       const drawHead = () => {
-        need(rowH + 2);
-        doc.setFillColor(232, 238, 233); doc.rect(M, y, CW, rowH, 'F');
+        need(rowH + 8);
+        doc.setFillColor(...MINT); doc.rect(M, y, CW, rowH, 'F');
         doc.setFont('helvetica', 'bold'); doc.setFontSize(7.6); doc.setTextColor(...FG);
         let x = M; head.forEach((h, i) => { doc.text(pdfText(h), x + 1.2, y + rowH - 1.7, { maxWidth: ws[i] - 2 }); x += ws[i]; });
         y += rowH; doc.setFont('helvetica', 'normal');
       };
       drawHead();
       rows.forEach(rw => {
+        doc.setFontSize(7.6);
         const cells = rw.map((c, i) => doc.splitTextToSize(pdfText(c), ws[i] - 2.4));
         const lines = Math.max(...cells.map(c => c.length));
         const h = Math.max(rowH, lines * 3.4 + 2.2);
-        if (y + h > H - M - 26) { newPage(); drawHead(); }
+        if (y + h > BOTTOM) { addPage(); drawHead(); }
         doc.setFontSize(7.6); doc.setTextColor(...FG);
         let x = M; cells.forEach((c, i) => { doc.text(c, x + 1.2, y + 3.6); x += ws[i]; });
         y += h; doc.setDrawColor(...LN); doc.setLineWidth(0.15); doc.line(M, y, M + CW, y);
       });
-      y += 3;
+      y += 4;
     }
     async function chart(svg, wmm) {
       const img = await svgToPng(svg);
@@ -129,10 +167,10 @@
     }
     function kpis(list) {
       const n = list.length, bw = CW / n;
-      need(20);
+      need(22);
       list.forEach((k, i) => {
         const x = M + i * bw;
-        doc.setDrawColor(...LN); doc.setLineWidth(0.2); doc.rect(x, y, bw - 2, 18);
+        doc.setDrawColor(...LN); doc.setLineWidth(0.2); doc.roundedRect(x, y, bw - 2, 18, 1.5, 1.5);
         doc.setFontSize(7); doc.setTextColor(...MU); doc.text(doc.splitTextToSize(pdfText(k[0]), bw - 5), x + 2, y + 4);
         doc.setFont('helvetica', 'bold'); doc.setFontSize(13); doc.setTextColor(...ACC); doc.text(pdfText(k[1]), x + 2, y + 13);
         doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(...MU); doc.text(pdfText(k[2] || ''), x + 2, y + 16.5);
@@ -140,40 +178,75 @@
       y += 22; doc.setTextColor(...FG);
     }
 
-    const loc = D.LOC[st.loc];
-    // ---- Deckblatt ----
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(...ACC); doc.text(pdfText(t('appName').toUpperCase() + ' · ' + t('pdfTitle').toUpperCase()), M, y + 4);
-    y += 12; doc.setFontSize(24); doc.setTextColor(...FG); doc.text(doc.splitTextToSize(pdfText(meta.project || t('appName')), CW), M, y + 8); y += 18;
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(...MU);
-    doc.text(pdfText(`${I.nm(D.BT[st.type])} · ${st.mode === 'existing' ? t('modeExisting') : t('modeNew')} · ${loc ? I.nm(loc) + ', ' + I.nm(D.COUNTRIES[loc.cc]) : ''} · ${t('variant')} ${st.name}`), M, y + 2); y += 10;
+    // ===== Deckblatt =====
+    doc.setFillColor(...MINT); doc.rect(0, 0, W, 6, 'F');
+    const img = await svgToPng(introSvg(), 1400);
+    const iw = 120, ih = img ? iw * img.ratio : 0;
+    if (img) doc.addImage(img.data, 'JPEG', (W - iw) / 2, 30, iw, ih, undefined, 'FAST');
+    y = 30 + ih + 14;
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(38); doc.setTextColor(...FG);
+    doc.text('Greenprint', W / 2, y, { align: 'center' }); y += 9;
+    doc.setFontSize(12); doc.setTextColor(...ACC);
+    doc.text(pdfText(t('tagline')), W / 2, y, { align: 'center' }); y += 18;
+    // Projekttitel
+    doc.setFontSize(9); doc.setTextColor(...MU);
+    doc.text(pdfText((t('pdfTitle') + ' · ' + t('variant') + ' ' + (st.name || 'A')).toUpperCase()), W / 2, y, { align: 'center' }); y += 9;
+    doc.setFontSize(22); doc.setTextColor(...FG);
+    const ptl = doc.splitTextToSize(pdfText(meta.project || t('appName')), CW - 20);
+    doc.text(ptl, W / 2, y, { align: 'center' }); y += ptl.length * 9 + 6;
+    // Projektangaben als Kasten
+    doc.setFont('helvetica', 'normal');
+    const facts = [
+      [t('btype'), btLabel],
+      [t('mode'), st.mode === 'existing' ? t('modeExisting') : t('modeNew')],
+      [t('region'), loc ? I.nm(loc) + ', ' + I.nm(D.COUNTRIES[loc.cc]) : '–'],
+      ['BGF / NRF', fmt(r.bgf) + ' / ' + fmt(r.nrf) + ' m²'],
+      [t('author'), meta.author || '–'],
+      [t('school'), meta.school || '–'],
+      [t('date'), dateStr],
+    ];
+    const bx = M + 14, bwid = CW - 28, rh = 7.4, bh = facts.length * rh + 6;
+    const by = Math.max(y, BOTTOM - bh - 4);
+    doc.setFillColor(246, 249, 247); doc.setDrawColor(...LN); doc.setLineWidth(0.25); doc.roundedRect(bx, by, bwid, bh, 3, 3, 'FD');
+    facts.forEach((f, i) => {
+      const yy = by + 3 + i * rh;
+      doc.setFontSize(8); doc.setTextColor(...MU); doc.text(pdfText(f[0]), bx + 6, yy + 5);
+      doc.setFontSize(10); doc.setTextColor(...FG); doc.text(pdfText(String(f[1])).slice(0, 80), bx + 52, yy + 5);
+      if (i < facts.length - 1) { doc.setDrawColor(225, 231, 226); doc.setLineWidth(0.15); doc.line(bx + 4, yy + rh, bx + bwid - 4, yy + rh); }
+    });
+
+    // ===== Inhaltsverzeichnis (wird am Ende ausgefüllt) =====
+    addPage();
+    const tocPage = pageNo();
+
+    // ===== 1 Ergebnisse =====
+    chapter(L('Ergebnisse', 'Results'));
+    section(L('Überblick', 'Overview'));
     kpis([
       [t('endEnergy'), fmt(r.endSpec, 0), 'kWh/m²a'], [t('effClass'), r.cls.c, 'GEG'], [t('co2Total'), fmt(r.lifeTotal / 1000, 0) + ' t', 'CO2e'],
       [t('co2PerNrfA'), fmt(r.lifeSpec, 1), 'kg/m²a'], [t('circularity'), r.circGrade, fmt(r.circScore, 0) + '/100'],
     ]);
     await chart(CH.classScale(r.endSpec, { C: P }), CW * 0.9);
     small(t('classNote'));
-    if (ctx.snapshot) { need(90); try { const pr = ctx.snapshotRatio || 0.6; doc.addImage(ctx.snapshot, 'JPEG', M, y, CW, CW * pr, undefined, 'FAST'); y += CW * pr + 4; } catch (e) { /* */ } }
-    else if (ctx.planThumb) { need(90); try { doc.addImage(ctx.planThumb, 'JPEG', M, y, CW * 0.6, CW * 0.6 * (ctx.planRatio || 0.7)); y += CW * 0.6 * (ctx.planRatio || 0.7) + 4; } catch (e) { /* */ } }
-    if (ctx.ai && ctx.ai.fazit) { h2(I.lang === 'en' ? 'Summary' : 'Fazit'); para(ctx.ai.fazit); }
-    newPage();
+    if (ctx.snapshot) { const pr = ctx.snapshotRatio || 0.6, w = CW * 0.8; need(w * pr + 4); try { doc.addImage(ctx.snapshot, 'JPEG', M + (CW - w) / 2, y, w, w * pr, undefined, 'FAST'); y += w * pr + 4; } catch (e) { /* */ } }
+    else if (ctx.planThumb) { const pr = ctx.planRatio || 0.7, w = CW * 0.6; need(w * pr + 4); try { doc.addImage(ctx.planThumb, 'JPEG', M + (CW - w) / 2, y, w, w * pr); y += w * pr + 4; } catch (e) { /* */ } }
+    if (ctx.ai && ctx.ai.fazit) { h2(L('Fazit', 'Summary')); para(ctx.ai.fazit); }
 
-    // ---- Projekt & Standort ----
-    h1(t('projectData'));
+    section(t('projectData'));
     table([t('project'), ''], [
-      [t('btype'), I.nm(D.BT[st.type]) + (st.sub ? ' / ' + st.sub : '')], [t('mode'), st.mode === 'existing' ? t('modeExisting') : t('modeNew')],
+      [t('btype'), btLabel], [t('mode'), st.mode === 'existing' ? t('modeExisting') : t('modeNew')],
       [t('region'), loc ? I.nm(loc) + ', ' + I.nm(D.COUNTRIES[loc.cc]) : ''], [t('hdd') + ' / ' + t('cdd'), fmt(r.cl.hdd) + ' / ' + fmt(r.cl.cdd)], [t('gh'), fmt(r.cl.gh)],
       [t('gridCo2'), fmt(r.cl.country.co2, 2) + ' kg/kWh'], ['BGF / NRF', fmt(r.bgf) + ' / ' + fmt(r.nrf) + ' m²'], [t('volume'), fmt(r.vol) + ' m³ · A/V ' + fmt(r.av, 2)],
       [t('heating'), I.nm(r.heat)], [t('ventilation'), t('vent_' + r.tech.vent)],
     ], [60, 120]);
     h2(t('elements'));
     table([t('kind'), t('name'), t('construction'), t('area') + ' m²', 'U', 'kg CO2e/m²', t('grade')], r.els.map(e => [
-      t('kind_' + e.kind) + (e.key ? ' ' + t('or_' + e.key) : ''), e.src.name || '', e.src.con === 'custom' ? t('customLayers') : I.nm(D.CON[e.src.con]),
+      t('kind_' + e.kind) + (e.key ? ' ' + t('or_' + e.key) : ''), e.src.name || '', e.src.con === 'custom' ? K.layersOf(e.src).map(l => `${I.nm(D.MAT[l.mat])} ${fmt(l.d * 100, l.d * 100 % 1 ? 1 : 0)} cm`).join(' / ') : I.nm(D.CON[e.src.con]),
       fmt(e.area), e.U != null ? fmt(e.U, 2) : '–', fmt(e.co2m2, 0) + (e.existing ? ' *' : ''), e.circGrade]), [26, 30, 62, 16, 12, 18, 10]);
-    table([t('windows'), t('windowType'), t('area') + ' m²', 'Uw', 'g', t('shading')], r.wins.map(w => [t('or_' + w.key), I.nm(w.type), fmt(w.area, 1), fmt(w.type.uw, 2), fmt(w.type.g, 2), t('sh_' + w.shade)]), [20, 70, 18, 14, 12, 22]);
+    if (r.wins.length) table([t('windows'), t('windowType'), t('area') + ' m²', 'Uw', 'g', t('shading')], r.wins.map(w => [t('or_' + w.key), I.nm(w.type), fmt(w.area, 1), fmt(w.type.uw, 2), fmt(w.type.g, 2), t('sh_' + w.shade)]), [20, 70, 18, 14, 12, 22]);
     if (st.mode === 'existing') small('* ' + t('boundCo2'));
 
-    // ---- Energie ----
-    h1(t('energyBalance'));
+    section(t('energyBalance'));
     kpis([[t('heatDemand'), fmt(r.qhSpec, 0), 'kWh/m²a'], [t('endEnergy'), fmt(r.endSpec, 0), 'kWh/m²a'], [t('coolDemand'), fmt(r.Qc / r.nrf, 0), 'kWh/m²a'], [t('penrt'), fmt(r.peSpec, 0), 'kWh/m²a']]);
     h2(t('lossesTitle'));
     await chart(ctx.charts.losses(P));
@@ -181,8 +254,7 @@
     await chart(ctx.charts.endUse(P));
     small(`${t('calcWay')}: Qh = 0,024 × ${fmt(r.cl.hdd)} Kd × (HT ${fmt(r.HT, 0)} + HV ${fmt(r.HV, 0)} W/K) − η ${fmt(r.eta, 2)} × (Qs ${fmt(r.Qs, 0)} + Qi ${fmt(r.Qi, 0)} kWh) = ${fmt(r.Qh, 0)} kWh/a`);
 
-    // ---- Ökobilanz ----
-    h1(t('lcaTitle'));
+    section(t('lcaTitle'));
     kpis([[t('co2Total'), fmt(r.lifeTotal / 1000, 0) + ' t', 'CO2e'], [t('co2PerBgf'), fmt(r.embPerBgf, 0), 'kg/m² (grau)'], [t('storedCarbon'), fmt(r.bio / 1000, 0) + ' t', 'CO2'], [t('circularity'), r.circGrade, fmt(r.circScore, 0) + '/100']]);
     h2(t('byPhase')); await chart(ctx.charts.phases(P));
     h2(t('byElement')); await chart(ctx.charts.byElement(P));
@@ -191,10 +263,9 @@
       para(`${t('boundCo2')}: ${fmt(r.exA13 / 1000, 0)} t CO2e. ${t('keepVariant')}: ${fmt(ctx.demo.keep / 1000, 0)} t · ${t('newVariant')}: ${fmt(ctx.demo.newBuild / 1000, 0)} t.`);
     }
 
-    // ---- Zielwerte & Aspekte ----
-    h1(t('targetsTitle'));
+    section(t('targetsTitle'));
     const tg = r.targets;
-    table([t('targetsTitle'), I.lang === 'en' ? 'Value' : 'Wert', I.lang === 'en' ? 'Target' : 'Ziel', 'Status'], [
+    table([t('targetsTitle'), L('Wert', 'Value'), L('Ziel', 'Target'), 'Status'], [
       [t('t_passivhaus'), fmt(tg.passivhaus.value, 0) + ' kWh/m²a', '<= 15', t('st_' + tg.passivhaus.status)],
       [t('t_nzeb'), fmt(tg.nzeb.value, 0) + ' kWh/m²a PEnrt', '<= ' + tg.nzeb.limit, t('st_' + tg.nzeb.status)],
       [t('t_ribaOp'), fmt(tg.ribaOp.value, 0) + ' kWh/m²a', '2030: ' + tg.ribaOp.limit + ' · 2025: ' + tg.ribaOp.limit2025, t('st_' + tg.ribaOp.status)],
@@ -208,39 +279,74 @@
       [t('pvYield'), r.kwp ? fmt(r.pvYield, 0) + ' kWh/a (' + fmt(r.kwp, 1) + ' kWp)' : t('noPv')], [t('runoff'), fmt(r.runoff, 0) + ' m³/a'], [t('rainPotential'), fmt(r.rainPotential, 0) + ' m³/a'],
     ], [70, 110]);
 
-    // ---- Vorschläge ----
-    h1(t('measuresTitle'));
-    const ms = ctx.measures;
-    table([I.lang === 'en' ? 'Measure' : 'Maßnahme', t('effort'), 'kWh/a', 't CO2e/50a', t('cost') + ' €', t('payback'), t('eurPerT')], ms.map(m => [
-      (ctx.selected.includes(m.id) ? '[x] ' : '[ ] ') + I.MEASURE_TEXT[m.id][I.lang][0], t('ef_' + m.effort), fmt(m.dEnd, 0), fmt(m.dLife / 1000, 1),
-      m.cost == null ? t('designCost') : fmt(m.cost, 0), m.payback != null ? fmt(m.payback, 0) + ' ' + t('years') : t('noPayback'), m.eurPerT != null ? fmt(m.eurPerT, 0) : '–']), [62, 18, 16, 16, 18, 18, 14]);
-    if (ctx.ai && ctx.ai.texts) {
-      ms.forEach(m => { const tx = ctx.ai.texts[m.id]; if (tx) { h2(I.MEASURE_TEXT[m.id][I.lang][0]); para(tx); } });
-      if (ctx.ai.extra && ctx.ai.extra.length) { h2(t('aiExtra')); ctx.ai.extra.forEach(x => para('• ' + x.titel + ': ' + x.text)); }
-    }
-    h2(t('beforeAfter') + (ctx.selected.length ? '' : ' (' + t('none') + ')'));
-    const o = ctx.opt;
+    // ===== 2 Optimierungsvorschläge =====
+    chapter(t('step5'));
+    const ms = ctx.measures, o = ctx.opt;
+    section(t('beforeAfter') + (ctx.selected.length ? '' : ' (' + t('none') + ')'));
     table(['', t('before'), t('after')], [
       [t('endEnergy') + ' kWh/m²a', fmt(r.endSpec, 0), fmt(o.endSpec, 0)], [t('effClass'), r.cls.c, o.cls.c],
-      ['CO2 ' + (I.lang === 'en' ? 'operation' : 'Betrieb') + ' t/a', fmt(r.co2Op / 1000, 1), fmt(o.co2Op / 1000, 1)],
+      ['CO2 ' + L('Betrieb', 'operation') + ' t/a', fmt(r.co2Op / 1000, 1), fmt(o.co2Op / 1000, 1)],
       [t('co2Total') + ' t', fmt(r.lifeTotal / 1000, 0), fmt(o.lifeTotal / 1000, 0)], [t('co2PerNrfA'), fmt(r.lifeSpec, 1), fmt(o.lifeSpec, 1)],
       [t('totalCost'), '', fmt(ctx.totalCost, 0) + ' €'],
     ], [80, 50, 50]);
+    section(L('Maßnahmen', 'Measures'));
+    small(L('[x] = ausgewählt und im Vorher/Nachher-Vergleich berücksichtigt', '[x] = selected and included in the before/after comparison'));
+    table([L('Maßnahme', 'Measure'), t('effort'), 'kWh/a', 't CO2e/50a', t('cost') + ' €', t('payback'), t('eurPerT')], ms.map(m => [
+      (ctx.selected.includes(m.id) ? '[x] ' : '[ ] ') + I.MEASURE_TEXT[m.id][I.lang][0], t('ef_' + m.effort), fmt(m.dEnd, 0), fmt(m.dLife / 1000, 1),
+      m.cost == null ? t('designCost') : fmt(m.cost, 0), m.payback != null ? fmt(m.payback, 0) + ' ' + t('years') : t('noPayback'), m.eurPerT != null ? fmt(m.eurPerT, 0) : '–']), [62, 18, 16, 16, 18, 18, 14]);
+    if (ctx.ai && ctx.ai.texts && ms.some(m => ctx.ai.texts[m.id])) {
+      section(L('Erläuterungen', 'Explanations'));
+      ms.forEach(m => { const tx = ctx.ai.texts[m.id]; if (tx) { h2(I.MEASURE_TEXT[m.id][I.lang][0]); para(tx); } });
+      if (ctx.ai.extra && ctx.ai.extra.length) { h2(t('aiExtra')); ctx.ai.extra.forEach(x => para('• ' + x.titel + ': ' + x.text)); }
+    }
 
-    // ---- Varianten ----
+    // ===== 3 Variantenvergleich =====
     if (ctx.variants && ctx.variants.length > 1) {
-      h1(t('s5Title'));
+      chapter(L('Variantenvergleich', 'Variant comparison'));
       table([''].concat(ctx.variants.map(v => t('variant') + ' ' + v.name)), ctx.variantRows, [60].concat(ctx.variants.map(() => 40)));
     }
 
-    // ---- Annahmen ----
-    h1(t('assumptions'));
-    table([I.lang === 'en' ? 'Topic' : 'Thema', I.lang === 'en' ? 'Source / assumption' : 'Quelle / Annahme'], D.SOURCES.map(s => I.lang === 'en' ? [s[1], s[3]] : [s[0], s[2]]), [50, 130]);
+    // ===== Annahmen & Quellen =====
+    chapter(t('assumptions'));
+    table([L('Thema', 'Topic'), L('Quelle / Annahme', 'Source / assumption')], D.SOURCES.map(s => EN ? [s[1], s[3]] : [s[0], s[2]]), [50, 130]);
     small(t('disclaimer'));
-    titleBlock();
 
+    // ===== Inhaltsverzeichnis ausfüllen =====
+    doc.setPage(tocPage); y = M;
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(20); doc.setTextColor(...ACC);
+    doc.text(L('Inhalt', 'Contents'), M, y + 8); y += 13;
+    doc.setDrawColor(...ACC); doc.setLineWidth(0.6); doc.line(M, y, M + CW, y); y += 9;
+    toc.forEach(e => {
+      const x = M + (e.lvl === 2 ? 9 : 0);
+      if (e.lvl === 1 && y > M + 30) y += 3;
+      doc.setFont('helvetica', e.lvl === 1 ? 'bold' : 'normal'); doc.setFontSize(e.lvl === 1 ? 11.5 : 10);
+      doc.setTextColor(...(e.lvl === 1 ? FG : MU));
+      const txt = pdfText(e.title), num = String(e.page);
+      doc.text(txt, x, y);
+      const tw = doc.getTextWidth(txt), nw = doc.getTextWidth(num);
+      // Punktlinie bis zur Seitenzahl
+      doc.setDrawColor(...LN); doc.setLineWidth(0.25); doc.setLineDashPattern([0.4, 1.2], 0);
+      doc.line(x + tw + 2, y - 0.6, M + CW - nw - 2, y - 0.6); doc.setLineDashPattern([], 0);
+      doc.text(num, M + CW, y, { align: 'right' });
+      doc.link(x, y - 4.5, CW - (x - M), 6, { pageNumber: e.page });
+      y += e.lvl === 1 ? 8.5 : 6.8;
+    });
+
+    // ===== Fußzeile auf jeder Seite =====
     const total = doc.getNumberOfPages();
-    pages.forEach(([pg, x, yy]) => { doc.setPage(pg); doc.setFontSize(8); doc.setTextColor(...FG); doc.text(`${pg} / ${total}`, x, yy); });
+    const aiNote = L('Teile der Auswertung (Planlesen, Erläuterungen, Fazit) können KI-gestützt erstellt sein – Angaben ohne Gewähr, bitte fachlich prüfen.',
+      'Parts of this report (plan reading, explanations, summary) may be AI-assisted – no liability, please check professionally.');
+    for (let p = 2; p <= total; p++) { // Deckblatt (Seite 1) ohne Fußzeile und Seitenzahl
+      doc.setPage(p);
+      const fy = H - 18;
+      doc.setDrawColor(...LN); doc.setLineWidth(0.25); doc.line(M, fy, M + CW, fy);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(6.8); doc.setTextColor(...MU);
+      const lines = doc.splitTextToSize(pdfText('Greenprint – ' + t('disclaimer')), CW - 30).concat(doc.splitTextToSize(pdfText(aiNote), CW - 30));
+      doc.text(lines, M, fy + 4);
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5); doc.setTextColor(...FG);
+      doc.text(pdfText(`${L('Seite', 'Page')} ${p} / ${total}`), M + CW, fy + 4.6, { align: 'right' });
+      doc.setFont('helvetica', 'normal');
+    }
     return doc.output('blob');
   }
 

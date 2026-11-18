@@ -148,6 +148,34 @@ tr.sel td { background: var(--accent-soft); }
 /* Feldbeschriftung mit Symbol oder Fragezeichen in einer Zeile, damit Felder bündig bleiben */
 .flbl { display: inline-flex; align-items: center; gap: 6px; flex-wrap: nowrap; }
 [hidden] { display: none !important; }
+/* Aufbau-Auswahl in der Bauteiltabelle: Feld wie eine Auswahlliste, Liste + Infofenster schweben darüber */
+.conpick-btn { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; min-width: 180px; text-align: left;
+  font: inherit; font-size: var(--fs-s); color: var(--fg); background: var(--panel2); border: 1px solid transparent; border-radius: var(--r-ctl); padding: 5px 8px 5px 10px; cursor: pointer; }
+.conpick-btn span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.conpick-btn .ico { flex: none; color: var(--fg); }
+.conpick-btn:hover { background: var(--t-mint); }
+.conpick-btn[aria-expanded="true"] { background: var(--panel); border-color: var(--accent); }
+.conpick { position: fixed; z-index: 60; display: flex; align-items: flex-start; gap: 8px; }
+.conpick.info-left { flex-direction: row-reverse; }
+.conpick.info-below { flex-direction: column; }
+.cp-list, .cp-info { background: var(--panel); border-radius: 16px; box-shadow: 0 18px 44px -18px rgb(20 50 35 / 0.45), 0 0 0 1px var(--line); }
+.cp-list { width: var(--list-w, 300px); max-height: min(60vh, 420px); overflow-y: auto; padding: 6px; display: flex; flex-direction: column; gap: 2px; }
+.cp-opt { display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; border: 0; background: transparent; border-radius: 10px; padding: 7px 10px; font: inherit; font-size: var(--fs-s); color: var(--fg); cursor: pointer; }
+.cp-opt .ico, .cp-sp { flex: none; width: 14px; color: var(--accent); }
+.cp-opt.hov, .cp-opt:hover { background: var(--t-mint); }
+.cp-opt[aria-selected="true"] { font-weight: 700; color: var(--accent); }
+.cp-opt:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.conpick.info-below .cp-info { width: var(--list-w, 340px); }
+.cp-info { width: 340px; box-sizing: border-box; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; animation: cpIn 0.14s ease-out; }
+@keyframes cpIn { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .cp-info { animation: none; } }
+.ci-head { display: flex; flex-direction: column; gap: 2px; }
+.ci-head strong { color: var(--accent); font-size: var(--fs-s); }
+.ci-table { width: 100%; border-collapse: collapse; font-size: var(--fs-xs); }
+.ci-table th { text-align: left; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; font-size: 0.68rem; padding: 0 4px 4px; border-bottom: 1px solid var(--line); }
+.ci-table td { padding: 4px; border-bottom: 1px solid var(--line); background: transparent; }
+.ci-table .n { text-align: right; }
+.ci-foot { display: flex; justify-content: space-between; gap: 10px; }
 /* Projekt-Chat: Reiter am rechten Rand, Fenster fährt von rechts heraus */
 .chat-tab { position: fixed; right: env(safe-area-inset-right, 0px); top: 30%; transform: translateY(-50%); z-index: 40;
   writing-mode: vertical-rl; display: inline-flex; align-items: center; gap: 8px; padding: 16px 10px; border: 0; border-radius: 18px 0 0 18px;

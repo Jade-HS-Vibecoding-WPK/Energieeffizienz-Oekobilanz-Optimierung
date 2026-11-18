@@ -28,6 +28,7 @@
   const MAT_RULES = [
     [/recycl|rc-?beton/i, 'rc_beton'], [/cem ?iii|zementreduz|low.?carbon conc/i, 'cem3_beton'],
     [/poren|aerated|ytong|gasbeton/i, 'porenbeton'], [/bims|leichtbeton|lightweight conc|pumice/i, 'leichtbeton'],
+    [/estrich|screed/i, 'zementestrich'],
     [/stahlbeton|reinforced|concrete|beton|c\d\d\/\d\d/i, 'stahlbeton'],
     [/kalksand|calcium sil|ks[- ]?stein|\bks\b|sand.?lime/i, 'ks'],
     [/vollziegel|klinker|solid brick|facing brick/i, 'vollziegel'], [/ziegel|brick|clay block|backstein|mauerwerk|masonry/i, 'hlz_alt'],
@@ -39,7 +40,11 @@
     [/schaumglas|foam.?glass|cellular glass/i, 'schaumglas'], [/xps/i, 'xps'], [/eps|polystyr|styropor/i, 'eps'], [/pur|pir|polyur/i, 'pir'],
     [/gipskarton|gypsum.?board|plasterboard|drywall|gk-?platte/i, 'gipskarton'], [/gipsputz|gypsum plaster/i, 'gipsputz'],
     [/putz|render|plaster|stucco/i, 'kalkzementputz'], [/estrich|screed/i, 'zementestrich'],
-    [/holz|timber|wood|kvh|bauholz|lumber/i, 'kvh'],
+    [/dachziegel|roof(ing)?\W*tile|tile\W*roof|ziegeleindeck/i, 'dachziegel'],
+    [/rigid.?insul|hartschaum|dämmplatte|daemmplatte/i, 'eps'], [/insulation|dämmung|daemmung|dämmstoff|isolierung/i, 'glaswolle'],
+    [/spanplatte|sperrholz|plywood|mdf|wood.?sheet|holzwerkstoff|chipboard|particle.?board/i, 'osb'],
+    [/holz|timber|wood|kvh|bauholz|lumber|sash/i, 'kvh'],
+    [/default roof|generic.*roof|dachkonstruktion|roof.?structure/i, 'kvh'],
     [/stahl|steel/i, 'stahl'], [/alu/i, 'alu'], [/bitumen|asphalt/i, 'bitumen'], [/epdm|fpo|pvc.?bahn|membrane|folie/i, 'epdm'],
     [/dachziegel|roof tile|dachstein/i, 'dachziegel'], [/faserzement|fibre cement|fiber cement|eternit/i, 'faserzement'],
     [/substrat|substrate|gründach|green roof/i, 'substrat'], [/kies|gravel|schotter/i, 'kies'],
@@ -197,9 +202,15 @@
     initScene(); clearModel();
     const W = window.WebIFC;
     const api = new W.IfcAPI();
-    const base = new URL('.', document.baseURI).href;
+    // Baustein web-ifc.wasm: zuerst aus dem App-Ordner, sonst (z. B. Seite per Doppelklick als Datei geöffnet
+    // oder lokaler Server beendet) vom CDN laden.
+    const local = new URL('.', document.baseURI).href;
+    const cdn = LIBS.ifc.replace(/[^/]+$/, '');
+    let base = local;
+    try { const r = await fetch(local + 'web-ifc.wasm', { method: 'HEAD', cache: 'no-store' }); if (!r.ok) base = cdn; } catch (e) { base = cdn; }
     api.SetWasmPath(base, true);
-    await api.Init(undefined, true);
+    try { await api.Init(undefined, true); }
+    catch (e) { if (base === cdn) throw e; api.SetWasmPath(cdn, true); await api.Init(undefined, true); }
     try { if (W.LogLevel) api.SetLogLevel(W.LogLevel.LOG_LEVEL_OFF); } catch (e) { /* ältere Version */ }
     progress && progress('parse');
     const modelID = api.OpenModel(new Uint8Array(buffer), { COORDINATE_TO_ORIGIN: true });
@@ -346,11 +357,12 @@
           if ((face.cx - cx) * nx + (face.cz - cz) * nz < 0) { nx = -nx; nz = -nz; }
           az = bearing(nx, nz);
         }
-        out.push({ kind, area: face.area, az, guid: it.guid, name: it.name, layers: it.layers, uval: it.uval, cy: face.cy, r: it.r, flat: kind === 'DA' ? face.ny > 0.97 : undefined });
+        out.push({ kind, area: face.area, az, guid: it.guid, name: it.name, layers: it.layers, uval: it.uval, cy: face.cy, r: it.r, flat: kind === 'DA' ? face.ny > 0.97 : undefined, face, isWall: it.cat === 'wall' });
       } else {
         out.push({ kind: 'CTX', r: it.r, name: it.name, guid: it.guid });
       }
     });
+    stackWallLayers(out, cx, cz);
 
     // Szene
     const THREE = V.THREE;
@@ -368,6 +380,76 @@
     const info = { format: 'IFC', north: num(opts.north, north), ifcNorth: north, count: out.length, parts: out.filter(o => o.kind !== 'CTX'), geo, matNames: collectMatNames(out) };
     V.info = info;
     return info;
+  }
+
+  // Schichtweise modellierte Wände zusammenfassen: Liegen mehrere Wände parallel direkt aneinander
+  // (z. B. 8 cm Holz + 12 cm Dämmung + 2,2 cm Platte als drei einzelne Wände) und ist eine davon eine
+  // Außenwand, wird daraus eine Außenwand mit allen Schichten (von außen nach innen).
+  // Die inneren Teile bleiben im 3D-Modell sichtbar (hostOf), zählen aber nicht doppelt als Fläche.
+  function stackWallLayers(out, cx, cz) {
+    const walls = out.filter(o => o.isWall && o.face && (o.kind === 'AW' || o.kind === 'IW'));
+    if (walls.length < 2) return;
+    walls.forEach(w => {
+      const l = Math.hypot(w.face.nx, w.face.nz) || 1;
+      w._n = [w.face.nx / l, w.face.nz / l];
+    });
+    // Ausdehnung einer Wand in einem Achsensystem (n = Normale, t = Tangente)
+    const range = (w, n) => {
+      const p = w.r.pos; let s0 = Infinity, s1 = -Infinity, t0 = Infinity, t1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+      for (let k = 0; k < p.length; k += 3) {
+        const s = p[k] * n[0] + p[k + 2] * n[1], t = -p[k] * n[1] + p[k + 2] * n[0], y = p[k + 1];
+        if (s < s0) s0 = s; if (s > s1) s1 = s; if (t < t0) t0 = t; if (t > t1) t1 = t; if (y < y0) y0 = y; if (y > y1) y1 = y;
+      }
+      return { s0, s1, t0, t1, y0, y1 };
+    };
+    const ov = (a0, a1, b0, b1) => Math.min(a1, b1) - Math.max(a0, b0);
+    // Union-Find
+    const par = walls.map((_, i) => i);
+    const find = i => (par[i] === i ? i : (par[i] = find(par[i])));
+    for (let i = 0; i < walls.length; i++) {
+      const a = walls[i], ra = range(a, a._n);
+      for (let j = i + 1; j < walls.length; j++) {
+        const b = walls[j];
+        if (Math.abs(a._n[0] * b._n[0] + a._n[1] * b._n[1]) < 0.97) continue; // nicht parallel
+        const rb = range(b, a._n);
+        if (ov(ra.s0, ra.s1, rb.s0, rb.s1) < -0.03) continue; // nicht aneinander (Fuge > 3 cm)
+        if (ov(ra.t0, ra.t1, rb.t0, rb.t1) < 0.3 || ov(ra.y0, ra.y1, rb.y0, rb.y1) < 0.3) continue; // überlappen nicht
+        par[find(i)] = find(j);
+      }
+    }
+    const clusters = new Map();
+    walls.forEach((w, i) => { const r = find(i); (clusters.get(r) || clusters.set(r, []).get(r)).push(w); });
+    clusters.forEach(cl => {
+      if (cl.length < 2 || !cl.some(w => w.kind === 'AW')) return;
+      // Außenrichtung: zu den als Außenwand erkannten Teilen hin (sonst von der Gebäudemitte weg)
+      const ref = cl.find(w => w.kind === 'AW');
+      let n = ref._n.slice();
+      cl.forEach(w => { const r = range(w, n); w._s = (r.s0 + r.s1) / 2; w._th = r.s1 - r.s0; });
+      const mean = arr => arr.reduce((a, w) => a + w._s, 0) / arr.length;
+      const ext = cl.filter(w => w.kind === 'AW'), inn = cl.filter(w => w.kind !== 'AW');
+      let flip;
+      if (inn.length) flip = mean(ext) < mean(inn);
+      else flip = (ref.face.cx - cx) * n[0] + (ref.face.cz - cz) * n[1] < 0;
+      if (flip) { n = [-n[0], -n[1]]; cl.forEach(w => { w._s = -w._s; }); }
+      // Bänder: Wände, die in derselben Ebene liegen (gleiche Lage in der Wandtiefe)
+      const sorted = cl.slice().sort((a, b) => b._s - a._s); // außen zuerst
+      const bands = [];
+      sorted.forEach(w => {
+        const b = bands.find(b => Math.abs(b.s - w._s) < Math.max(0.02, Math.min(b.th, w._th) / 2));
+        if (b) b.items.push(w); else bands.push({ s: w._s, th: w._th, items: [w] });
+      });
+      if (bands.length < 2) return;
+      const layers = [];
+      bands.forEach(b => {
+        const src = b.items.find(w => w.layers && w.layers.length);
+        if (src) src.layers.forEach(l => layers.push({ name: l.name, d: l.d > 0 ? l.d : Math.round(b.th * 1000) / 1000 }));
+        else layers.push({ name: b.items[0].name || '', d: Math.round(b.th * 1000) / 1000 });
+      });
+      const hosts = bands[0].items;
+      hosts.forEach(h => { if (h.az == null) h.az = bearing(n[0], n[1]); h.kind = 'AW'; h.layers = layers; h.stacked = bands.length; h.uval = null; });
+      bands.slice(1).forEach(b => b.items.forEach(w => { w.kind = 'AW'; w.hostOf = hosts[0]; }));
+    });
+    walls.forEach(w => { delete w._n; delete w._s; delete w._th; });
   }
 
   function resolveMaterial(api, modelID, rm) {
@@ -393,7 +475,8 @@
 
   function collectMatNames(out) {
     const set = new Set();
-    out.forEach(o => (o.layers || []).forEach(l => { if (l.name && !matchMaterial(l.name)) set.add(l.name); }));
+    // Fenster nutzen keine Schichten (Uw-Wert), ihre Materialnamen sind für die Berechnung egal
+    out.forEach(o => o.kind !== 'FE' && !o.hostOf && (o.layers || []).forEach(l => { if (l.name && !matchMaterial(l.name)) set.add(l.name); }));
     return [...set];
   }
 
