@@ -148,6 +148,7 @@
   function render() {
     renderHeader(); renderSteps(); renderMain(); renderFooter(); renderChat();
     afterRender();
+    scheduleSave();
     if (App.conPick || $('#conPick')) renderConPick();
   }
   function renderHeader() {
@@ -159,12 +160,11 @@
       <div class="hb-main"><h1 class="hb-title">${t('appName')}</h1>
       <div class="hb-row">
       <div class="sub">${t('tagline')}</div>
-      <div class="tb-project"><span class="label">${t('project')} · ${t('variant')} ${esc(st.name)}</span><span class="v">${esc(App.meta.project || (st.example ? t('loadExample') : '–'))}</span></div>
+      <div class="tb-project"><span class="label">${t('project')} · ${t('variant')} ${esc(st.name)}</span><span class="v">${esc(App.meta.project || (st.example ? t('loadExample') : '–'))}</span><span id="saveState">${esc(saveStateText())}</span></div>
       <div class="tb-actions">
         <div class="lang" role="group" aria-label="Sprache / Language"><button data-act="lang" data-v="de" aria-pressed="${I.lang === 'de'}">DE</button><button data-act="lang" data-v="en" aria-pressed="${I.lang === 'en'}">EN</button></div>
-        <button class="btn small" data-act="saveProject">${icon('download', 14)}${t('saveProject')}</button>
+        <button class="btn small" data-act="myProjects" title="${esc(saveStateText())}">${icon('file', 14)}${LL('Meine Projekte', 'My projects')}</button>
         <button class="btn primary newproj" data-act="newProject">${icon('plus', 16)}${t('newProject')}</button>
-        <input type="file" id="projFile" accept=".json,application/json" hidden>
       </div></div></div>`;
   }
   function hasElements() { return cur().elements.length > 0; }
@@ -1064,6 +1064,108 @@
     App.chatBusy = false; App.chatFocus = true; render();
   }
 
+  // ---------- Meine Projekte: Ablage im Browser (localStorage), automatisches Speichern ----------
+  // Index: gp_proj_index = [{ id, name, savedAt, cls, nv }], je Projekt: gp_proj_<id> = { meta, variants, active, ai, step }
+  // 3D-Modell und Pläne werden nicht gespeichert (zu groß) – sie können beim Öffnen erneut hochgeladen werden.
+  const PS = {
+    get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); return true; } catch (e) { return false; } },
+    del(k) { try { localStorage.removeItem(k); } catch (e) { /* */ } },
+    index() { try { const a = JSON.parse(PS.get('gp_proj_index') || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; } },
+    saveIndex(a) { return PS.set('gp_proj_index', JSON.stringify(a)); },
+    ok: (() => { try { localStorage.setItem('gp_t', '1'); localStorage.removeItem('gp_t'); return true; } catch (e) { return false; } })(),
+  };
+  const LL = (de, en) => (I.lang === 'en' ? en : de);
+  const newPid = () => 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  const workSig = () => JSON.stringify([App.meta, App.variants]);
+  function stripVariants(vs) {
+    return K.clone(vs).map(v => { (v.elements || []).forEach(e => { delete e.parts; }); (v.windows || []).forEach(w => { delete w.parts; }); return v; });
+  }
+  // Ausgangszustand merken: Beispiel bzw. leeres Projekt wird erst gespeichert, wenn du etwas änderst
+  function markBase() { App.baseSig = workSig(); }
+  function saveNow(silent) {
+    clearTimeout(App.saveTimer); App.saveTimer = null;
+    if (!PS.ok) return false;
+    const sig = workSig();
+    if (!App.projectId && sig === App.baseSig) return false; // noch nichts geändert
+    if (App.projectId && sig === App.savedSig && App.lastStep === App.step) return true;
+    if (!App.projectId) App.projectId = newPid();
+    let cls = '', end = null;
+    try { const r = K.calc(cur()); cls = r.cls ? r.cls.c : ''; end = Math.round(r.endSpec); } catch (e) { /* */ }
+    const name = App.meta.project || '';
+    const data = { app: 'greenprint', version: 2, meta: App.meta, active: App.active, step: App.step, variants: stripVariants(App.variants), ai: App.ai || {} };
+    if (!PS.set('gp_proj_' + App.projectId, JSON.stringify(data))) { if (!silent && !App.saveWarned) { App.saveWarned = true; toast(LL('Speichern nicht möglich – der Browser-Speicher ist voll oder gesperrt.', 'Saving failed – browser storage is full or blocked.')); } return false; }
+    const idx = PS.index().filter(p => p.id !== App.projectId);
+    const old = PS.index().find(p => p.id === App.projectId);
+    idx.unshift({ id: App.projectId, name, savedAt: Date.now(), createdAt: old ? old.createdAt : Date.now(), cls, end, nv: App.variants.length, type: cur().type });
+    PS.saveIndex(idx);
+    PS.set('gp_last', App.projectId);
+    App.savedSig = sig; App.lastStep = App.step; App.savedAt = Date.now();
+    const s = $('#saveState'); if (s) s.textContent = saveStateText();
+    return true;
+  }
+  function scheduleSave() { if (!PS.ok) return; clearTimeout(App.saveTimer); App.saveTimer = setTimeout(() => saveNow(true), 900); }
+  function saveStateText() {
+    if (!PS.ok) return LL('Speichern im Browser nicht möglich', 'Browser storage unavailable');
+    if (!App.projectId) return LL('wird gespeichert, sobald du etwas änderst', 'saved as soon as you change something');
+    const d = new Date(App.savedAt || Date.now());
+    return LL('automatisch gespeichert ', 'auto-saved ') + d.toLocaleTimeString(I.lang === 'en' ? 'en-GB' : 'de-DE', { hour: '2-digit', minute: '2-digit' });
+  }
+  window.addEventListener('beforeunload', () => saveNow(true));
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') saveNow(true); });
+
+  function loadProject(id, quiet) {
+    const raw = PS.get('gp_proj_' + id);
+    if (!raw) { toast(t('openFailed')); return false; }
+    try {
+      const o = JSON.parse(raw);
+      if (!o || !Array.isArray(o.variants) || !o.variants.length) throw new Error('format');
+      App.variants = o.variants.slice(0, 3); App.active = Math.min(o.active || 0, App.variants.length - 1);
+      App.meta = Object.assign({ project: '', author: '', school: '' }, o.meta || {});
+      App.plans = []; App.modelFile = null; App.modelInfo = null; VW.clearModel();
+      App.progress = null; App.ai = o.ai || {}; App.chat = []; App.selected = null;
+      App.step = o.step === 2 || !o.step ? 3 : o.step; // Schritt 2 (Auslesen) braucht die Dateien → zu ③
+      App.projectId = id; App.savedSig = workSig(); App.lastStep = App.step; markBase();
+      const e = PS.index().find(p => p.id === id); App.savedAt = e ? e.savedAt : Date.now();
+      PS.set('gp_last', id);
+      if (!quiet) toast(LL('Projekt geöffnet', 'Project opened') + (App.variants.some(v => (v.elements || []).some(x => x.src === 'model')) ? ' · ' + t('modelNotSaved') : ''));
+      return true;
+    } catch (err) { toast(t('openFailed')); return false; }
+  }
+
+  function projectsHtml() {
+    if (!PS.ok) return `<p>${LL('Dein Browser erlaubt hier kein Speichern (z. B. privates Fenster). Projekte können deshalb nicht abgelegt werden.', 'Your browser does not allow storage here (e.g. private window), so projects cannot be stored.')}</p>`;
+    const idx = PS.index();
+    const fmtD = ts => new Date(ts).toLocaleString(I.lang === 'en' ? 'en-GB' : 'de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const clsCol = c => { const k = (D.CLASSES || []).find(x => x.c === c); return k ? k.col : 'var(--grey)'; };
+    const rows = idx.map(p => {
+      const isCur = p.id === App.projectId;
+      const conf = App.delConfirm === p.id;
+      return `<li class="pj ${isCur ? 'cur' : ''}">
+        <span class="pj-cls" style="background:${clsCol(p.cls)}">${esc(p.cls || '–')}</span>
+        <span class="pj-main"><strong>${esc(p.name || LL('Unbenanntes Projekt', 'Untitled project'))}</strong>
+          <span class="xs muted">${LL('zuletzt gespeichert', 'last saved')} ${fmtD(p.savedAt)} · ${p.nv || 1} ${p.nv > 1 ? LL('Varianten', 'variants') : LL('Variante', 'variant')}${p.end != null ? ` · ${fmt(p.end, 0)} kWh/m²a` : ''}${isCur ? ` · <b style="color:var(--accent)">${LL('geöffnet', 'open')}</b>` : ''}</span></span>
+        <span class="pj-act">
+          ${isCur ? '' : `<button class="btn small primary" data-act="projOpen" data-id="${p.id}">${LL('Öffnen', 'Open')}</button>`}
+          <button class="btn small" data-act="projCopy" data-id="${p.id}" title="${LL('Kopie anlegen', 'Duplicate')}">${LL('Kopie', 'Copy')}</button>
+          <button class="btn small ${conf ? 'danger' : 'ghost'}" data-act="projDel" data-id="${p.id}" aria-label="${LL('Löschen', 'Delete')}">${conf ? LL('Wirklich löschen?', 'Really delete?') : icon('x', 14)}</button>
+        </span></li>`;
+    }).join('');
+    return `<div class="stack">
+      <div class="row" style="justify-content:space-between;gap:10px"><span class="small muted">${idx.length ? (idx.length === 1 ? LL('1 Projekt', '1 project') : LL(`${idx.length} Projekte`, `${idx.length} projects`)) : ''}</span>
+        <button class="btn small primary" data-act="newProject">${icon('plus', 14)} ${t('newProject')}</button></div>
+      ${idx.length ? `<ul class="pjlist">${rows}</ul>` : `<p class="pj-empty">${LL('Noch keine eigenen Projekte vorhanden. Sobald du ein Projekt bearbeitest, erscheint es hier.', 'No projects of your own yet. As soon as you edit a project, it appears here.')}</p>`}
+      <ul class="pj-info">
+        <li>${LL('<b>Speichert automatisch</b>, während du arbeitest.', '<b>Saves automatically</b> while you work.')}</li>
+        <li>${LL('Nur <b>in diesem Browser</b> auf diesem Gerät – nicht online.', 'Only <b>in this browser</b> on this device – not online.')}</li>
+        <li>${LL('3D-Modelle und Pläne werden nicht gespeichert. Alle Werte bleiben erhalten.', '3D models and plans are not saved. All values are kept.')}</li>
+        <li>${LL('Löschst du deine Browserdaten, sind die Projekte weg. Zum Aufbewahren: PDF-Bericht.', 'Clearing your browser data removes them. To keep a record: PDF report.')}</li>
+      </ul>
+    </div>`;
+  }
+  function showProjects() { App.delConfirm = null; saveNow(true); modal(LL('Meine Projekte', 'My projects'), projectsHtml()); }
+  function refreshProjects() { const b = document.querySelector('#modal .box'); if (!b) return; const head = b.firstElementChild; b.innerHTML = ''; b.appendChild(head); b.insertAdjacentHTML('beforeend', projectsHtml()); }
+
   // ---------- Export ----------
   function exportCtx() {
     const c = App.lastCtx && App.lastCtx.st === cur() ? App.lastCtx : compute(cur());
@@ -1147,11 +1249,30 @@
     sources: () => modal(t('assumptions'), sourcesHtml()),
     closeModal,
     newProject: () => {
-      modal(t('newProject'), `<p>${I.lang === 'en' ? 'Start a new, empty project? Unsaved changes will be lost.' : 'Neues, leeres Projekt beginnen? Nicht gespeicherte Änderungen gehen verloren.'}</p><div class="row end"><button class="btn" data-act="closeModal">${t('back')}</button><button class="btn primary" data-act="confirmNew">${t('newProject')}</button></div>`);
+      saveNow(true);
+      const kept = App.projectId ? LL('Dein aktuelles Projekt bleibt unter „Meine Projekte“ gespeichert.', 'Your current project stays saved under “My projects”.') : LL('Das aktuelle Beispiel wird nicht gespeichert.', 'The current example is not saved.');
+      modal(t('newProject'), `<p>${LL('Neues, leeres Projekt beginnen?', 'Start a new, empty project?')} ${kept}</p><div class="row end"><button class="btn" data-act="closeModal">${t('back')}</button><button class="btn primary" data-act="confirmNew">${t('newProject')}</button></div>`);
     },
-    confirmNew: () => { closeModal(); App.variants = [K.emptyState()]; App.active = 0; App.meta = { project: '', author: App.meta.author, school: App.meta.school }; App.plans = []; App.modelFile = null; App.modelInfo = null; VW.clearModel(); App.progress = null; App.ai = {}; App.chat = []; App.selected = null; App.step = 1; render(); },
-    openProject: () => $('#projFile').click(),
-    saveProject: async () => { const r = await EX.save(App.downloads, EX.safeName(App.meta.project || 'greenprint') + '.json', EX.projectJson(App)); toast(r === 'saved' ? t('saved') : r === 'declined' ? t('saveDeclined') : t('saveUnavailable')); },
+    confirmNew: () => { saveNow(true); closeModal(); App.variants = [K.emptyState()]; App.active = 0; App.meta = { project: '', author: App.meta.author, school: App.meta.school }; App.plans = []; App.modelFile = null; App.modelInfo = null; VW.clearModel(); App.progress = null; App.ai = {}; App.chat = []; App.selected = null; App.step = 1; App.projectId = null; App.savedSig = null; markBase(); PS.del('gp_last'); render(); },
+    myProjects: () => showProjects(),
+    projOpen: el => { saveNow(true); closeModal(); if (loadProject(el.dataset.id)) render(); },
+    projCopy: el => {
+      saveNow(true);
+      const raw = PS.get('gp_proj_' + el.dataset.id); const src = PS.index().find(p => p.id === el.dataset.id); if (!raw || !src) return;
+      const o = JSON.parse(raw); const id = newPid(); const nm2 = (src.name || LL('Unbenanntes Projekt', 'Untitled project')) + LL(' (Kopie)', ' (copy)');
+      o.meta = Object.assign({}, o.meta, { project: nm2 });
+      if (!PS.set('gp_proj_' + id, JSON.stringify(o))) { toast(LL('Speichern nicht möglich – der Browser-Speicher ist voll.', 'Saving failed – browser storage is full.')); return; }
+      const idx = PS.index(); idx.unshift(Object.assign({}, src, { id, name: nm2, savedAt: Date.now(), createdAt: Date.now() })); PS.saveIndex(idx);
+      refreshProjects();
+    },
+    projDel: el => {
+      const id = el.dataset.id;
+      if (App.delConfirm !== id) { App.delConfirm = id; refreshProjects(); return; }
+      App.delConfirm = null;
+      PS.del('gp_proj_' + id); PS.saveIndex(PS.index().filter(p => p.id !== id));
+      if (App.projectId === id) { App.projectId = null; App.savedSig = null; markBase(); PS.del('gp_last'); }
+      refreshProjects();
+    },
     mode: el => { const st = cur(); st.mode = el.dataset.v; st.elements.forEach(e => { e.existing = st.mode === 'existing'; }); st.windows.forEach(w => { w.existing = st.mode === 'existing'; }); render(); },
     removePlan: el => { App.plans = App.plans.filter(p => p.id !== el.dataset.id); render(); },
     removeModel: () => { App.modelFile = null; App.modelInfo = null; VW.clearModel(); App.variants.forEach(v => { v.elements.forEach(e => { delete e.parts; }); v.windows.forEach(w => { delete w.parts; }); }); render(); },
@@ -1297,7 +1418,6 @@
     const el = e.target;
     if (el.id === 'planFiles' && commit) { addPlanFiles([...el.files]); el.value = ''; return; }
     if (el.id === 'modelFile' && commit) { if (el.files[0]) setModelFile(el.files[0]); el.value = ''; return; }
-    if (el.id === 'projFile' && commit) { openProjectFile(el.files[0]); el.value = ''; return; }
     if (el.id === 'colorMode' && commit) { App.colorMode = el.value; render(); return; }
     const st = cur();
     let rerender = commit;
@@ -1346,19 +1466,6 @@
   root.addEventListener('change', e => onField(e, true));
   root.addEventListener('input', e => { if (e.target.id === 'chatIn') { App.chatDraft = e.target.value; return; } if (e.target.type === 'range' || e.target.tagName === 'TEXTAREA' || e.target.type === 'text') onField(e, false); });
 
-  async function openProjectFile(f) {
-    if (!f) return;
-    try {
-      const o = EX.parseProject(await f.text());
-      App.variants = o.variants.slice(0, 3); App.active = Math.min(o.active || 0, App.variants.length - 1);
-      App.meta = Object.assign({ project: '', author: '', school: '' }, o.meta || {});
-      App.plans = []; App.modelFile = null; App.modelInfo = null; VW.clearModel();
-      App.variants.forEach(v => { v.elements.forEach(e => { delete e.parts; }); v.windows.forEach(w => { delete w.parts; }); });
-      App.progress = null; App.ai = {}; App.chat = []; App.step = 4;
-      toast(t('projectLoaded') + ' · ' + t('modelNotSaved'));
-      render();
-    } catch (e) { toast(t('openFailed')); }
-  }
 
 
   // ---------- Fußspur: Abdrücke drehen sich in Laufrichtung (der Zeiger selbst bleibt fest), alle 50 Bildpunkte, max. 5, verblassend ----------
@@ -1395,6 +1502,11 @@
   })();
   document.documentElement.lang = I.lang;
   App.meta.project = EXAMPLE_NAMES[I.lang === 'en' ? 1 : 0];
+  markBase();
+  // zuletzt bearbeitetes Projekt wieder öffnen
+  { const last = PS.get('gp_last'); if (last && PS.index().some(p => p.id === last)) loadProject(last, true); }
+  root.addEventListener('input', scheduleSave);
+  root.addEventListener('change', scheduleSave);
   render();
   window.OBC_APP = App; // zur Fehlersuche
   App.debug = { exportCtx, compute, modelToState, render, setModelFile, readModel };
