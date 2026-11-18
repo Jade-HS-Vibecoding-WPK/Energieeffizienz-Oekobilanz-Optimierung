@@ -1,6 +1,6 @@
 # Umsetzungsplan: Web-App „Greenprint“
 
-Stand: 17.11.2026 (zuletzt aktualisiert) · Status: **Umgesetzt** – App unter https://claude.ai/artifact/YChJDwMuERSuFfqSoLoAUg, Code in `app/`
+Stand: 18.11.2026 (zuletzt aktualisiert) · Status: **Umgesetzt** – App unter https://claude.ai/artifact/YChJDwMuERSuFfqSoLoAUg, Code in `app/`
 
 Dieser Plan beschreibt in einfachen Worten, was die Web-App können soll, wie sie aussieht, wie sie rechnet und in welchen Schritten sie gebaut wird. Programmiert wird erst nach der Freigabe.
 
@@ -16,7 +16,7 @@ Du lädst einen oder mehrere **Pläne** oder ein **3D-/BIM-Modell** (IFC, OBJ, g
 4. einen **Vorher/Nachher-Vergleich** und einen **Variantenvergleich** (bis zu 3 Varianten)
 5. einen Vergleich mit **Zielwerten**: Passivhaus, Niedrigstenergie (EU), EU Level(s) und RIBA 2030
 6. einen **Projekt-Chat**, in dem du der KI Rückfragen zu deinem Projekt stellst
-7. einen **PDF-Bericht**, eine **Excel-Tabelle** und eine **Projektdatei** zum Speichern
+7. einen **PDF-Bericht** (mit Deckblatt und Inhaltsverzeichnis) und eine **Projektdatei** zum Speichern
 8. bei 3D-/BIM-Modellen eine **Maßnahmenliste mit Bauteil-Kennungen (IFC-GUIDs)**, mit der du jede Änderung in deinem BIM-Programm wiederfindest
 
 ---
@@ -30,7 +30,7 @@ Du lädst einen oder mehrere **Pläne** oder ein **3D-/BIM-Modell** (IFC, OBJ, g
 | Wie werden die Pläne gelesen? | **KI + Formular**: Die KI liest die Pläne und schlägt Werte vor, du prüfst und korrigierst sie, dann rechnet die App. |
 | KI-Stufe | **Stärkste Stufe** (am genauesten, eine Analyse dauert ca. 1 bis 3 Minuten) |
 | Wo läuft die App? | **Online-Link auf claude.ai** (privat, die KI läuft über dein Claude-Konto, kein API-Schlüssel nötig). Eine Kopie liegt im lokalen Ordner. |
-| GitHub | **Nur auf ausdrücklichen Wunsch.** Bisher hochgeladen: PLAN.md (16.11.2026) und die App mit den Commits „Herkunft entfernt“, „Titel geändert“ und „Curser angepasst“ (17.11.2026). |
+| GitHub | **Nur auf ausdrücklichen Wunsch.** Bisher hochgeladen: PLAN.md (16.11.2026) und die App mit den Commits „Herkunft entfernt“, „Titel geändert“, „Curser angepasst“, „Curser Reiter“ (17.11.2026) und „PDF Dokument angepasst“ (18.11.2026). |
 | KI-Anbieter | **claude.ai (eingebaut)** in der Online-Version oder **OpenRouter mit eigenem API-Key** in der lokalen Version (App-lokal-starten.bat). Genutzt werden die **kostenlosen OpenRouter-Modelle** (Gemma 4, mit Ausweichmodellen bei Überlastung). Der Key liegt nur im Browser. Auf claude.ai sind Verbindungen zu OpenRouter gesperrt. |
 | Sprache | **Deutsch + Englisch**, umschaltbar |
 | Zielgruppe | **Studierende**: Fachbegriffe werden erklärt (Fragezeichen-Symbol und Glossar), die Rechenwege sind fürs Lernen aufbereitet. |
@@ -39,7 +39,7 @@ Du lädst einen oder mehrere **Pläne** oder ein **3D-/BIM-Modell** (IFC, OBJ, g
 
 | Thema | Entscheidung |
 |---|---|
-| Name | **Greenprint** (bis 17.11.2026 „Ökobilanz-Check“), Unterzeile „Energieeffizienz und Ökobilanz für deine Projektplanung“. Kopfzeile: Logo links, Titel oben, darunter in einer Zeile Unterzeile, Projekt/Variante und Knöpfe bis „+ Neues Projekt“ |
+| Name | **Greenprint** (bis 17.11.2026 „Ökobilanz-Check“), Unterzeile „Energieeffizienz und Ökobilanz für deine Projektplanung“. Kopfzeile: Logo links, Titel oben, darunter in einer Zeile Unterzeile, Projekt/Variante und Knöpfe DE/EN, „Projekt speichern“ und „+ Neues Projekt“ |
 | Akzentfarbe | **Waldgrün** |
 | Schrift | **Nunito** für die ganze App (Überschriften, Texte, Zahlen) |
 | Hintergrund | **Grauer Grund** (leicht grünlich abgestimmt), Kacheln heller darauf |
@@ -51,7 +51,7 @@ Du lädst einen oder mehrere **Pläne** oder ein **3D-/BIM-Modell** (IFC, OBJ, g
 | Hell/Dunkel | **Immer hell**, unabhängig von der Einstellung des Computers (geändert am 17.11.2026, vorher automatisch hell/dunkel) |
 | Effizienzskala | **Klassisch bunt** (Grün → Gelb → Rot), wie auf dem Energieausweis |
 | Symbole | **Feine Liniensymbole** im Stil einer Planzeichnung (Wand, Dach, Fenster, Sonne, Heizung …) |
-| PDF-Bericht | **A4 hoch, mit Schriftfeld** (Projekt, Verfasser/in, Datum, Hochschule; du trägst die Angaben selbst ein) |
+| PDF-Bericht | **A4 hoch, mit Deckblatt** (Intro-Zeichnung, Name, Projektangaben inkl. Verfasser/in, Hochschule, Datum), **Inhaltsverzeichnis**, jedes Hauptthema auf neuer Seite und **Fußzeile** mit Hinweis, KI-Hinweis und Seitenzahl (nicht auf dem Deckblatt). Das frühere Schriftfeld entfällt. |
 | Intro | **„Greenprint wird gezeichnet“**: Ein Haus entsteht als grüner Bauplan, füllt sich, Blatt-Logo, Schriftzug und Unterzeile erscheinen (ca. 5 s, weicher Übergang). Einmal pro Browser-Tab, überspringbar. |
 | Mauszeiger | **Fußabdruck**: weiß mit waldgrünem Rand, beim Klicken waldgrün gefüllt, feste Ausrichtung. Beim Bewegen entsteht alle 50 Bildpunkte eine waldgrüne **Fußspur** (abwechselnd links/rechts, in Laufrichtung gedreht, max. 5, verblassend). In Textfeldern bleibt der Text-Cursor. Ein kleiner Reiter mit Zeiger-Symbol direkt unter dem Chat-Reiter schaltet auf den normalen Mauszeiger um (und zurück); die Wahl wird im Browser gemerkt. |
 | Ladesymbol | runder Ring in Salbei mit waldgrünem Bogen, abgerundeter Fortschrittsbalken |
@@ -79,7 +79,7 @@ Du lädst einen oder mehrere **Pläne** oder ein **3D-/BIM-Modell** (IFC, OBJ, g
 |---|---|
 | Varianten | **Bis zu 3 Varianten** (A, B, C) nebeneinander |
 | Speichern | **Projektdatei**: Alle Werte und Varianten werden als kleine Datei auf deinem Rechner gespeichert, ohne die Pläne. Später kannst du sie wieder öffnen. |
-| Export | **PDF-Bericht + Excel-Tabelle** |
+| Export | **PDF-Bericht** (die Excel-Tabelle wurde am 18.11.2026 entfernt) |
 | Projekt-Chat | **Ja**, als **Reiter am rechten Bildschirmrand** auf jeder Seite (am Handy unten rechts). Ein Klick öffnet ein Chat-Fenster, die KI kennt die aktuellen Werte deines Projekts. |
 | KI-Einstellungen | über die **KI-Statuszeile in der Fußzeile** (bzw. „KI einrichten“, wenn keine KI aktiv ist) |
 
@@ -102,7 +102,7 @@ Du lädst einen oder mehrere **Pläne** oder ein **3D-/BIM-Modell** (IFC, OBJ, g
  ① Projekt & Pläne  →  ② KI liest die Pläne  →  ③ Werte prüfen  →  ④ Ergebnis & Vorschläge  →  ⑤ Varianten
 ```
 
-Oben zeigt eine Fortschrittsleiste den aktuellen Schritt. Mit einem Klick auf einen Schritt springst du zurück. Oben rechts gibt es die Knöpfe **DE/EN**, **Projekt öffnen** und **Projekt speichern**.
+Oben zeigt eine Fortschrittsleiste den aktuellen Schritt. Mit einem Klick auf einen Schritt springst du zurück. Oben rechts gibt es die Knöpfe **DE/EN**, **Projekt speichern** und **+ Neues Projekt**. („Projekt öffnen“ wurde am 18.11.2026 entfernt.)
 
 ### ① Projekt & Pläne
 - **Zwei Wege:** „Pläne hochladen“ oder „3D-/BIM-Modell hochladen“. Beides lässt sich kombinieren, z. B. ein IFC-Modell plus ein Detailplan mit Wandaufbau.
@@ -129,14 +129,14 @@ Oben zeigt eine Fortschrittsleiste den aktuellen Schritt. Mit einem Klick auf ei
 
 ### ③ Werte prüfen
 - Alle Werte stehen in einem gegliederten Formular: Geometrie, Bauteile, Fenster, Technik, Klima. **Geschätzte Werte sind markiert**, und neben jedem Wert steht ein Fragezeichen mit einer Erklärung.
-- **Bauteile:** Du wählst einen Aufbau aus dem **Katalog** oder öffnest „**Eigene Schichten**“. Dort fügst du Schichten hinzu (Material aus einer Liste und Dicke in cm). Die App rechnet daraus sofort U-Wert, CO₂ und Kreislaufbewertung.
+- **Bauteile:** Ein Klick auf das Feld „Aufbau“ öffnet die Liste aller Aufbauten. Fährst du mit der Maus über einen Eintrag, zeigt ein **Infofenster** daneben die Schichten (Material, Dicke, λ), die Gesamtdicke und den U-Wert. Du wählst einen Aufbau aus dem **Katalog** oder „**Eigene Schichten**“. Dort fügst du Schichten hinzu (Material aus einer Liste und Dicke in cm). Die App rechnet daraus sofort U-Wert, CO₂ und Kreislaufbewertung.
 - **Bestand:** Bei jedem Bauteil gibt es ein Häkchen „Bestand“ oder „neu“.
 - **Klimadaten** sind vom Standort vorausgefüllt und lassen sich überschreiben.
 - **Bei einem Modell** steht neben dem Formular die 3D-Ansicht. Klickst du eine Zeile im Formular an, leuchten die zugehörigen Bauteile im Modell auf, und umgekehrt.
 
 ### ④ Ergebnis
 - Kennzahlen, Diagramme, Zielwertvergleich und Rechenweg als Bento-Grid (Details in Abschnitt 7).
-- Knöpfe oben rechts: **PDF-Bericht**, **Excel-Tabelle**, ggf. **Maßnahmenliste (GUIDs)**, **Variante anlegen**.
+- Knöpfe oben rechts: **PDF-Bericht**, ggf. **Maßnahmenliste (GUIDs)**, **Variante anlegen**.
 
 ### ⑤ Optimierungsvorschläge
 - Oben: **Vorher/Nachher** (Effizienzklasse, Anzahl Maßnahmen, Kosten) und **Wirkung der Maßnahmen** (drei Vergleichsdiagramme).
@@ -284,11 +284,11 @@ Die Darstellung ist eine Ampel (erreicht / knapp verfehlt / deutlich verfehlt) p
 | Flächen und Ausrichtung je Bauteil | ✔ exakt | ✔ exakt aus der Geometrie |
 | Geschosse, Volumen, BGF | ✔ | ✔ aus der Geometrie geschätzt |
 | Innen oder Außen | ✔ über die Eigenschaft „IsExternal“, sonst über die Lage | über die Lage zur Hülle |
-| Materialschichten mit Dicken | ✔, wenn im Modell gepflegt | ✘, Auswahl im Formular |
-| U-Werte | ✔, wenn im Modell eingetragen | ✘, aus dem Aufbau berechnet |
+| Materialschichten mit Dicken | ✔, wenn im Modell gepflegt. Sind die Schichten als **einzelne, parallel aneinanderliegende Wände** modelliert (z. B. Holz + Dämmung + Platte), fasst die App sie zu **einer Außenwand mit Schichtaufbau** zusammen (von außen nach innen). Gängige Materialnamen (auch englische aus Revit, z. B. „Roofing, Tile“, „Rigid insulation“, „Screed“) werden automatisch zugeordnet. | ✘, Auswahl im Formular |
+| U-Werte | ✔, wenn im Modell eingetragen; sind die Schichten nicht vollständig erkannt, wählt die App den Katalogaufbau mit dem passendsten U-Wert | ✘, aus dem Aufbau berechnet |
 | Nordrichtung | ✔ meist im Modell | Eingabe in Schritt ① |
 
-Fehlende Angaben ergänzt du in Schritt ③. Bei sehr großen Modellen werden nur die Bauteile der Gebäudehülle und die Tragstruktur ausgewertet, Möbel und Ausstattung nicht.
+Beim Einlesen zeigt ein Ladebalken den Fortschritt, ebenso bei „Materialnamen mit KI zuordnen“. Den Baustein `web-ifc.wasm` lädt die App aus dem eigenen Ordner, notfalls aus dem Internet. Fehlende Angaben ergänzt du in Schritt ③. Bei sehr großen Modellen werden nur die Bauteile der Gebäudehülle und die Tragstruktur ausgewertet, Möbel und Ausstattung nicht.
 
 ### Was du am Modell machen kannst
 
@@ -311,7 +311,7 @@ Fehlende Angaben ergänzt du in Schritt ③. Bei sehr großen Modellen werden nu
 
 ### Maßnahmenliste für dein BIM-Programm
 
-- Als Excel-Tabelle: eine Zeile pro geändertem Bauteil mit **IFC-GUID**, Bauteiltyp, Geschoss, Fläche, alter und neuer Aufbau, altem und neuem U-Wert sowie CO₂-Einsparung.
+- Als Excel-Tabelle (eigener Knopf „Maßnahmenliste (GUIDs)“): eine Zeile pro geändertem Bauteil mit **IFC-GUID**, Bauteiltyp, Geschoss, Fläche, alter und neuer Aufbau, altem und neuem U-Wert sowie CO₂-Einsparung.
 - Über die GUID findest du jedes Bauteil in Revit, Archicad usw. sofort wieder und änderst es dort.
 - Bei OBJ/glTF gibt es keine GUIDs. Dort nutzt die Liste die Objektnamen aus der Datei.
 
@@ -371,23 +371,20 @@ Stand 17.11.2026: Der ursprüngliche Stil (eckig, feine Linien, Space Grotesk/In
 - **Formen:** große Rundungen: Kacheln 28 px, Karten 20 px, Eingabefelder 12 px, Knöpfe, Schrittleiste und Kennzeichen pillenförmig. Weiche Flächen statt Rahmenlinien.
 - **Bento-Grid:** Auf der Ergebnisseite sind die Kacheln unterschiedlich groß (z. B. 5, 7 oder 12 von 12 Spalten). Die Hingucker-Kachel steht oben links. Auf dem Handy stapeln sich alle Kacheln untereinander.
 - **Symbole:** feine Liniensymbole, selbst gezeichnet.
-- **Kopfzeile:** großes Logo, Titel „Greenprint“ bündig mit der Logo-Oberkante, darunter in einer Zeile Unterzeile (Grundlinie bündig mit der Logo-Unterkante), Projekt/Variante, DE/EN, Projekt öffnen/speichern und der hervorgehobene Knopf „+ Neues Projekt“.
+- **Kopfzeile:** großes Logo, Titel „Greenprint“ bündig mit der Logo-Oberkante, darunter in einer Zeile Unterzeile (Grundlinie bündig mit der Logo-Unterkante), Projekt/Variante, DE/EN, „Projekt speichern“ und der hervorgehobene Knopf „+ Neues Projekt“.
 - **Fußzeile:** Hinweis zur Genauigkeit, Glossar, Annahmen & Quellen und die KI-Statuszeile (klickbar → KI-Einstellungen).
 - **Intro:** „Greenprint wird gezeichnet“ auf zartem Plan-Raster, einmal pro Browser-Tab, überspringbar; bei „Bewegung reduzieren“ nur kurz das fertige Bild.
 - **Mauszeiger und Fußspur:** siehe Tabelle in 2.2; auf Handy/Tablet ohne Wirkung, die Spur entfällt bei „Bewegung reduzieren“.
 - **Ladesymbol:** runder Ring (Salbei/Waldgrün), in grünen Knöpfen weiß; Fortschrittsbalken abgerundet und sanft animiert.
 - **Handy:** Die App funktioniert auch auf dem Smartphone. Spalten stapeln sich dann untereinander.
-- **PDF-Bericht:** A4 hoch. Auf jeder Seite unten rechts steht ein **Schriftfeld** mit Projekt, Verfasser/in, Datum, Hochschule und Seitenzahl. Inhalt:
-  1. Deckblatt mit Kennzahlen
-  2. Projekt und Standort
-  3. Energie
-  4. Ökobilanz
-  5. Zielwerte
-  6. weitere Aspekte
-  7. Vorschläge
-  8. Vorher/Nachher
-  9. Varianten
-  10. Annahmen und Quellen
+- **PDF-Bericht:** A4 hoch, gleicher Aufbau für „Ergebnis“ und „Varianten“:
+  - **Deckblatt:** Haus aus dem Intro auf Plan-Raster, „Greenprint“ mit Unterzeile, Projektname und ein Kasten mit Gebäudetyp, Projektart, Standort, BGF/NRF, Verfasser/in, Hochschule und Datum. Ohne Seitenzahl und Fußzeile.
+  - **Inhaltsverzeichnis** mit Seitenzahlen (Einträge sind anklickbar).
+  - **1 Ergebnisse:** Überblick (Kennzahlen, Effizienzskala, Modellbild, Fazit), Projektangaben & Bauteile (bei eigenen Schichten mit Schichtaufbau), Energiebilanz, Ökobilanz, Zielwerte & weitere Aspekte.
+  - **2 Optimierungsvorschläge:** Vorher/Nachher, Maßnahmen, ggf. Erläuterungen der KI.
+  - **3 Variantenvergleich** (nur bei mehreren Varianten).
+  - **Annahmen & Quellen** als letztes Kapitel.
+  - Jedes Hauptkapitel beginnt auf einer neuen Seite. **Fußzeile** ab Seite 2: Genauigkeitshinweis, KI-Hinweis und „Seite x / y“.
 
 ---
 
@@ -400,11 +397,11 @@ Du musst hier nichts selbst tun. Dieser Abschnitt erklärt nur, woraus die App b
 - **Zusatzbausteine (Bibliotheken),** die aus einer freigegebenen Quelle geladen werden:
   - *pdf.js* wandelt PDF-Pläne in Bilder um.
   - *jsPDF* erzeugt den PDF-Bericht.
-  - *SheetJS* erzeugt die Excel-Tabelle und die Maßnahmenliste.
+  - *SheetJS* erzeugt die Maßnahmenliste (GUIDs).
   - *three.js* zeigt das 3D-Modell im Browser an und liest OBJ- und glTF-Dateien.
   - *web-ifc* liest IFC-Dateien. Es braucht eine Zusatzdatei (`web-ifc.wasm`, ein schneller Programmbaustein), die zusammen mit der App veröffentlicht wird.
   - *Tailwind CSS* (3.4.17) übernimmt Raster, Abstände und Schrift des Bento-Designs. Der Teil, der alle vorhandenen Stile zurücksetzt („Preflight“), ist abgeschaltet, damit Formulare und Tabellen ihre eigenen Stile behalten.
-- **Speichern und Herunterladen:** Über die Download-Funktion von claude.ai, die vor jedem Speichern kurz nachfragt. Das gilt für den PDF-Bericht, die Excel-Tabelle und die Projektdatei (`.json`). Eine Projektdatei öffnest du über eine normale Dateiauswahl.
+- **Speichern und Herunterladen:** Über die Download-Funktion von claude.ai, die vor jedem Speichern kurz nachfragt. Das gilt für den PDF-Bericht, die Maßnahmenliste und die Projektdatei (`.json`).
 - **Diagramme und Symbole** werden direkt in der App gezeichnet. Die App ist immer hell.
 - **Zweisprachig:** Alle Texte liegen auf Deutsch und Englisch vor. Die KI antwortet in der gewählten Sprache.
 - **Datenschutz:** Pläne werden nicht gespeichert, sie gehen nur zur Analyse an Claude. Die Projektdatei enthält nur Zahlen und Texte und liegt bei dir.
@@ -420,7 +417,7 @@ Du musst hier nichts selbst tun. Dieser Abschnitt erklärt nur, woraus die App b
       ├── calc.js, data.js   ← Rechenkern und Daten
       ├── i18n.js, charts.js ← Texte DE/EN, Diagramme
       ├── ai.js, ai-openrouter.js ← KI-Anfragen (claude.ai / OpenRouter)
-      ├── viewer.js, export.js    ← 3D/BIM, PDF/Excel
+      ├── viewer.js, export.js    ← 3D/BIM, PDF-Bericht
       └── web-ifc.wasm       ← Baustein zum Lesen von IFC-Dateien
   ```
 
@@ -437,7 +434,7 @@ Du musst hier nichts selbst tun. Dieser Abschnitt erklärt nur, woraus die App b
 | 5 | **Ergebnisseite:** Kennzahlen, Diagramme, Zielwerte, Vorschläge, Vorher/Nachher, Rechenweg, Glossar | vollständige Auswertung |
 | 6 | **KI:** Pläne lesen, Vorschläge erklären, Projekt-Chat | App liest echte Pläne |
 | 6a | **3D/BIM:** IFC- und OBJ/glTF-Import, Bauteilerkennung, 3D-Ansicht, farbige Auswertung, Anklicken & Ändern, Vorschläge und Varianten am Modell | App liest Modelle |
-| 7 | **Varianten, Speichern und Export:** Variantenvergleich, Projektdatei, PDF-Bericht mit Schriftfeld, Excel, Maßnahmenliste mit GUIDs | vollständige App |
+| 7 | **Varianten, Speichern und Export:** Variantenvergleich, Projektdatei, PDF-Bericht mit Deckblatt und Inhaltsverzeichnis, Maßnahmenliste mit GUIDs | vollständige App |
 | 8 | **Testen:** Rechenwerte gegenprüfen, Test-IFC- und OBJ-Modelle, Handy- und Dunkelmodus, beide Sprachen | geprüfte App |
 | 9 | **Veröffentlichen** als Online-Link, Dateien in den lokalen Ordner legen, README ergänzen | Link und Dateien im Ordner |
 
