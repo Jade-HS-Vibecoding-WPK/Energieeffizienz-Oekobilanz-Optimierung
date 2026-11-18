@@ -148,7 +148,8 @@
   function clearModel() {
     V.parts.forEach(p => { p.mesh.geometry.dispose(); });
     if (V.root) { while (V.root.children.length) V.root.remove(V.root.children[0]); }
-    V.parts = []; V.hasModel = false; V.info = null;
+    V.parts = []; V.hasModel = false; V.info = null; V.prep = null;
+    if (V.renderer) V.renderer.localClippingEnabled = false;
   }
 
   function frame() {
@@ -171,9 +172,70 @@
     // Himmelsrichtungen in Modellkoordinaten (Nord = −Z, gedreht um north)
     const dirVec = b => { const a = (b - (V.info ? V.info.north : 0)) * Math.PI / 180; return new THREE.Vector3(Math.sin(a), 0, -Math.cos(a)); };
     void rot;
+    if (dir === 'roof') {
+      // Dachaufsicht: senkrecht von oben, Norden zeigt nach oben
+      const n = dirVec(0), dd = Math.max(s.x, s.z) * 1.9 + 4;
+      V.camera.position.set(c.x - n.x * 0.01, box.max.y + dd, c.z - n.z * 0.01);
+      V.controls.target.set(c.x, box.max.y - s.y * 0.5, c.z); V.controls.update();
+      return;
+    }
     if (dir === 'top') V.camera.position.set(c.x, c.y + d, c.z + 0.001);
     else { const b = { S: 180, N: 0, E: 90, W: 270 }[dir]; const v = dirVec(b != null ? b : 180); V.camera.position.set(c.x + v.x * d, c.y + s.y * 0.3, c.z + v.z * d); }
     V.controls.target.copy(c); V.controls.update();
+  }
+
+  // ---------- Sprengansicht und Schnitt ----------
+  // Grundlage: Begrenzungsrahmen aller Bauteile und Mittelpunkt jedes Bauteils (aus der unbewegten Geometrie)
+  function prepTools() {
+    if (V.prep && V.prep.n === V.parts.length) return V.prep;
+    const THREE = V.THREE;
+    const bbox = new THREE.Box3();
+    V.parts.forEach(p => {
+      const g = p.mesh.geometry; if (!g.boundingBox) g.computeBoundingBox();
+      p._c = g.boundingBox.getCenter(new THREE.Vector3());
+      bbox.union(g.boundingBox);
+    });
+    V.prep = { n: V.parts.length, bbox, center: bbox.getCenter(new THREE.Vector3()), size: bbox.getSize(new THREE.Vector3()) };
+    return V.prep;
+  }
+  // f = 0 … 1: Bauteile rücken vom Gebäudemittelpunkt weg, höher liegende Teile zusätzlich nach oben
+  function setExplode(f) {
+    if (!V.hasModel || !V.parts.length) return;
+    const P = prepTools(), minY = P.bbox.min.y, k = Math.max(P.size.x, P.size.z) > 0 ? 1 : 0;
+    f = Math.max(0, Math.min(1, +f || 0)) * k;
+    V.parts.forEach(p => {
+      if (!p._c) return;
+      const dx = p._c.x - P.center.x, dz = p._c.z - P.center.z, dy = p._c.y - minY;
+      p.mesh.position.set(dx * f * 0.75, dy * f * 1.0, dz * f * 0.75);
+    });
+  }
+  // mode: 'h' = waagerecht (Grundriss, von oben), 'a' / 'b' = senkrecht entlang der langen / kurzen Gebäudeseite; t = 0 … 1
+  function setCut(mode, t) {
+    if (!V.renderer) return;
+    const THREE = V.THREE;
+    const on = !!mode && V.hasModel;
+    V.renderer.localClippingEnabled = on;
+    if (!V.cutPlane) V.cutPlane = new THREE.Plane(new THREE.Vector3(0, -1, 0), 0);
+    if (on) {
+      const P = prepTools(), b = P.bbox, tt = Math.max(0.02, Math.min(0.98, +t));
+      const longX = P.size.x >= P.size.z;
+      if (mode === 'h') V.cutPlane.set(new THREE.Vector3(0, -1, 0), b.min.y + (b.max.y - b.min.y) * tt);
+      else {
+        const useX = mode === 'a' ? !longX : longX; // Schnitt A schneidet quer zur langen Seite → Blick in die Länge
+        if (useX) V.cutPlane.set(new THREE.Vector3(-1, 0, 0), b.min.x + (b.max.x - b.min.x) * tt);
+        else V.cutPlane.set(new THREE.Vector3(0, 0, -1), b.min.z + (b.max.z - b.min.z) * tt);
+      }
+    }
+    const planes = on ? [V.cutPlane] : null;
+    V.parts.forEach(p => {
+      const mats = [p.mesh.material].concat(p.mesh.children.map(ch => ch.material).filter(Boolean));
+      mats.forEach(m => { const had = !!(m.clippingPlanes && m.clippingPlanes.length); m.clippingPlanes = planes; if (had !== on) m.needsUpdate = true; });
+    });
+  }
+  function applyTools(s) {
+    s = s || {};
+    setExplode(s.explodeOn ? s.explode : 0);
+    setCut(s.cutOn ? s.cutMode || 'h' : null, s.cut != null ? s.cut : 0.5);
   }
 
   const KIND_COLOR = { AW: 0xd9d4c7, DA: 0xb9573f, BO: 0x8f9a93, DE: 0xc9ccc4, IW: 0xe6e2d8, FE: 0x8fc1d9, CTX: 0xcfd3cf };
@@ -641,7 +703,7 @@
   }
 
   window.OBC_VIEWER = {
-    load, mount, setColors, highlight, snapshot, snapshotDataUrl, frame, view, matchMaterial, clearModel, loadScript,
+    load, mount, setColors, highlight, snapshot, snapshotDataUrl, frame, view, matchMaterial, clearModel, loadScript, setExplode, setCut, applyTools,
     get hasModel() { return V.hasModel; }, get parts() { return V.parts; }, get info() { return V.info; },
     set onPick(fn) { V.onPick = fn; },
   };

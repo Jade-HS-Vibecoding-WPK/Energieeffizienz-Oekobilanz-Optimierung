@@ -148,6 +148,18 @@ tr.sel td { background: var(--accent-soft); }
 /* Feldbeschriftung mit Symbol oder Fragezeichen in einer Zeile, damit Felder bündig bleiben */
 .flbl { display: inline-flex; align-items: center; gap: 6px; flex-wrap: nowrap; }
 [hidden] { display: none !important; }
+/* 3D-Werkzeuge: Sprengen, Schnitt, Dachaufsicht (unter der oberen Leiste im 3D-Fenster) */
+.viewer .v3tools { position: absolute; top: 52px; right: 8px; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; z-index: 2; max-width: calc(100% - 16px); }
+.v3-btns { background: var(--panel); box-shadow: 0 6px 18px -10px rgb(20 50 35 / 0.45); }
+.v3-btns button { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); font-weight: 700; padding: 6px 11px; }
+.v3-btns button[aria-pressed="true"], .v3-seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+.v3-panel { background: var(--panel); border-radius: 14px; padding: 8px 12px; display: flex; flex-direction: column; gap: 6px; box-shadow: 0 6px 18px -10px rgb(20 50 35 / 0.45); font-size: var(--fs-xs); }
+.v3-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.v3-row > span { font-weight: 700; color: var(--accent); min-width: 58px; }
+.v3-row input[type="range"] { width: 150px; accent-color: var(--accent); }
+.v3-row b { min-width: 38px; text-align: right; font-variant-numeric: tabular-nums; }
+.v3-seg button { font-size: var(--fs-xs); padding: 3px 8px; }
+@media (max-width: 620px) { .viewer .v3tools { top: auto; bottom: 40px; } .v3-row input[type="range"] { width: 110px; } }
 /* Meine Projekte (Liste im Dialog) */
 .pjlist { list-style: none; margin: 0; padding: 2px; display: flex; flex-direction: column; gap: 8px; max-height: 55vh; overflow-y: auto; overflow-x: hidden; }
 .pj { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 14px; background: var(--panel2); }

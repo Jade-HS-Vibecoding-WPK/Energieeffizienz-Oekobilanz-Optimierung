@@ -440,7 +440,7 @@
         <td><input type="checkbox" data-winf="${w.id}" data-f="existing" ${w.existing ? 'checked' : ''} aria-label="${t('existing')}"></td>
         <td><button class="iconbtn" data-act="delWindow" data-id="${w.id}" aria-label="${t('delete')}">${icon('x', 16)}</button></td></tr>`).join('');
     const tch = st.tech;
-    const viewer = VW.hasModel ? `<div class="viewer"><div class="canvas" id="viewer3d"></div><div class="vtools"><span></span>${viewButtons()}</div><span class="hint">${t('clickHint')}</span></div>` : '';
+    const viewer = VW.hasModel ? `<div class="viewer"><div class="canvas" id="viewer3d"></div><div class="vtools"><span></span>${viewButtons()}</div>${tools3d()}<span class="hint">${t('clickHint')}</span></div>` : '';
     return `<section class="section"><div class="section-head"><h2>${t('s3Title')}</h2><span class="muted small">${t('s3Intro')}</span></div>
       ${viewer}
       <div class="card stack"><h3>${t('geometry')} ${help(GL.area)}</h3>
@@ -482,6 +482,28 @@
       </div>
       <div class="row end"><button class="btn" data-act="step" data-v="1">${t('back')}</button><button class="btn primary" data-act="step" data-v="4" ${st.elements.length ? '' : 'disabled'}>${t('toResult')}</button></div>
     </section>`;
+  }
+  // Werkzeuge im 3D-Fenster: Sprengansicht, Schnitt, Dachaufsicht (gleich bei „Werte prüfen“ und „Ergebnis“)
+  App.v3d = { explodeOn: false, explode: 0.5, cutOn: false, cutMode: 'h', cut: 0.5 };
+  function tools3d() {
+    const v = App.v3d, en = I.lang === 'en';
+    const L = (de, e) => (en ? e : de);
+    const ico = { explode: 'M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6M10 10h4v4h-4z', cut: 'M3 12h18M6 6h12v12H6z', roof: 'M3 3h18v18H3zM3 3l9 9 9-9M12 12v9' };
+    const svg = d => `<svg class="ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`;
+    const pct = x => Math.round(x * 100) + ' %';
+    const panel = [];
+    if (v.explodeOn) panel.push(`<label class="v3-row"><span>${L('Sprengen', 'Explode')}</span><input type="range" min="0" max="1" step="0.02" value="${v.explode}" data-v3d="explode" aria-label="${L('Sprengabstand', 'Explode distance')}"><b data-v3d-out="explode">${pct(v.explode)}</b></label>`);
+    if (v.cutOn) panel.push(`<div class="v3-row"><span>${L('Schnitt', 'Section')}</span>
+      <div class="seg v3-seg" role="group" aria-label="${L('Schnittrichtung', 'Section direction')}">${[['h', L('waagerecht', 'horizontal')], ['a', L('längs', 'long')], ['b', L('quer', 'cross')]].map(([m, lb]) => `<button data-act="v3dCutMode" data-v="${m}" aria-pressed="${v.cutMode === m}">${lb}</button>`).join('')}</div>
+      <input type="range" min="0" max="1" step="0.01" value="${v.cut}" data-v3d="cut" aria-label="${L('Schnittlage', 'Section position')}"><b data-v3d-out="cut">${pct(v.cut)}</b></div>`);
+    return `<div class="v3tools">
+      <div class="seg v3-btns" role="group" aria-label="${L('3D-Werkzeuge', '3D tools')}">
+        <button data-act="v3dToggle" data-v="explode" aria-pressed="${v.explodeOn}" title="${L('Gebäude in seine Bauteile zerlegen', 'Pull the building apart')}">${svg(ico.explode)}${L('Sprengen', 'Explode')}</button>
+        <button data-act="v3dToggle" data-v="cut" aria-pressed="${v.cutOn}" title="${L('Schnitt durch das Gebäude', 'Cut through the building')}">${svg(ico.cut)}${L('Schnitt', 'Section')}</button>
+        <button data-act="view" data-v="roof" title="${L('Senkrecht von oben, Norden oben', 'Straight from above, north up')}">${svg(ico.roof)}${L('Dachaufsicht', 'Roof plan')}</button>
+      </div>
+      ${panel.length ? `<div class="v3-panel">${panel.join('')}</div>` : ''}
+    </div>`;
   }
   function viewButtons() {
     return `<div class="seg" role="group" aria-label="Ansicht">${['N', 'E', 'S', 'W'].map(d => `<button data-act="view" data-v="${d}">${t('or_' + d).slice(0, 1)}</button>`).join('')}<button data-act="view" data-v="top">⌂</button><button data-act="view" data-v="fit">⤢</button></div>`;
@@ -730,7 +752,7 @@
     return `<div class="bento col-span-1 md:col-span-6 lg:col-span-8"><div class="flex justify-between items-center gap-3"><h3>${icon('cube')} ${t('model3d')}</h3><span class="small muted">${esc(App.modelFile ? App.modelFile.name : '')}</span></div>
       <div class="viewer"><div class="canvas" id="viewer3d"></div>
         <div class="vtools"><div class="row" style="gap:6px"><select id="colorMode" style="width:auto" aria-label="${t('colorBy')}">${['heat', 'co2', 'circ', 'sun', 'none'].map(m => `<option value="${m}" ${App.colorMode === m ? 'selected' : ''}>${t('colorBy')}: ${t('cm_' + m)}</option>`).join('')}</select>
-          ${c.sel.length ? `<button class="btn small ${App.ba ? 'primary' : ''}" data-act="ba">${t('beforeAfterToggle')}: ${App.ba ? t('after') : t('before')}</button>` : ''}</div>${viewButtons()}</div>
+          ${c.sel.length ? `<button class="btn small ${App.ba ? 'primary' : ''}" data-act="ba">${t('beforeAfterToggle')}: ${App.ba ? t('after') : t('before')}</button>` : ''}</div>${viewButtons()}</div>${tools3d()}
         ${App.colorMode !== 'none' ? `<div class="legend"><span>${t('legendLow')}</span><span class="ramp"></span><span>${t('legendHigh')}</span><span class="muted">${unitMap[App.colorMode]}</span></div>` : ''}<span class="hint">${t('clickHint')}</span></div></div>
       <div class="bento sage col-span-1 md:col-span-6 lg:col-span-4">${sel}
           <h4>${icon('rotate', 14)} ${t('rotate')}: ${fmt(adj.rot || 0, 0)}°</h4><input type="range" min="-180" max="180" step="15" data-adj="rot" value="${adj.rot || 0}" aria-label="${t('rotate')}">
@@ -785,6 +807,7 @@
       VW.mount(box);
       syncParts();
       applyModelColors();
+      VW.applyTools(App.v3d);
     }
     const ci = $('#chatIn'); if (ci && App.chatFocus) { ci.focus(); App.chatFocus = false; }
   }
@@ -1341,6 +1364,8 @@
       render();
       const b = document.querySelector(`.conpick-btn[data-id="${id}"]`); if (b) b.focus();
     },
+    v3dToggle: el => { const k = el.dataset.v; App.v3d[k + 'On'] = !App.v3d[k + 'On']; render(); },
+    v3dCutMode: el => { App.v3d.cutMode = el.dataset.v; render(); },
     cursorToggle: () => {
       App.plainCursor = !App.plainCursor;
       document.documentElement.classList.toggle('plain-cursor', App.plainCursor);
@@ -1463,6 +1488,12 @@
     else return;
     if (rerender) render();
   }
+  root.addEventListener('input', e => {
+    const k = e.target.dataset && e.target.dataset.v3d; if (!k) return;
+    App.v3d[k] = +e.target.value;
+    const o = document.querySelector(`[data-v3d-out="${k}"]`); if (o) o.textContent = Math.round(App.v3d[k] * 100) + ' %';
+    VW.applyTools(App.v3d);
+  });
   root.addEventListener('change', e => onField(e, true));
   root.addEventListener('input', e => { if (e.target.id === 'chatIn') { App.chatDraft = e.target.value; return; } if (e.target.type === 'range' || e.target.tagName === 'TEXTAREA' || e.target.type === 'text') onField(e, false); });
 
