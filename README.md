@@ -1,14 +1,20 @@
 # Greenprint – Energieeffizienz und Ökobilanz für deine Projektplanung
 
-**Greenprint** ist eine Web-App für Architekturstudierende. Du lädst Pläne oder ein 3D-/BIM-Modell eines Gebäudes hoch und bekommst eine **Energie- und Ökobilanz-Auswertung** mit konkreten **Optimierungsvorschlägen** für Bauweise und Materialwahl. Das Gebäude kann schon gebaut sein oder noch im Entwurf stecken.
+**Greenprint wertet Pläne oder ein 3D-/BIM-Modell eines Gebäudes aus und liefert eine Energie- und Ökobilanz mit konkreten Optimierungsvorschlägen für Bauweise und Materialwahl.**
 
-Entstanden im Wahlpflichtkurs *Vibecoding / KI-Anwendungen* (5. Semester Architektur, Jade Hochschule), 2026.
+▶ **Live-Demo:** https://jade-hs-vibecoding-wpk.github.io/Energieeffizienz-Oekobilanz-Optimierung/
 
-## ▶ Live-Demo
+Die App läuft direkt im Browser, ohne Installation und ohne Konto. Für die KI-Funktionen trägt jede Person ihren eigenen, kostenlosen OpenRouter-Key ein (siehe [KI einrichten](#ki-einrichten-optional)). Entstanden im Wahlpflichtkurs *Vibecoding / KI-Anwendungen* (5. Semester Architektur, Jade Hochschule), 2026.
 
-**https://jade-hs-vibecoding-wpk.github.io/Energieeffizienz-Oekobilanz-Optimierung/**
+## Screenshots
 
-Die App läuft direkt im Browser. Du musst nichts installieren, und ein Konto brauchst du auch nicht. Rechnen, 3D-Modell, PDF-Bericht und „Meine Projekte“ funktionieren sofort. Nur die KI-Funktionen brauchen einen eigenen, kostenlosen Schlüssel (siehe [KI einrichten](#ki-einrichten-optional)).
+| Startseite | Werte prüfen mit 3D-Modell |
+|---|---|
+| ![Startseite: Projekt anlegen mit Pläne- und Modell-Upload](docs/screenshots/01-startseite.png) | ![Werte prüfen: 3D-Modell mit Sprengen, Schnitt und Dachaufsicht, darunter Geometrie und Bauteile](docs/screenshots/02-werte-pruefen.png) |
+| **Ergebnis** | **Optimierungsvorschläge** |
+| ![Ergebnis: Endenergie, Effizienzklasse, CO₂-Kennzahlen und Zielwerte](docs/screenshots/03-ergebnis.png) | ![Optimierungsvorschläge: Vorher/Nachher von Klasse F zu A+ mit Wirkungsdiagrammen](docs/screenshots/04-optimierungsvorschlaege.png) |
+
+*Beispiel: Holzhaus als IFC-Modell, aufgenommen in der Live-Demo (1600 × 900 Pixel).*
 
 ---
 
@@ -41,7 +47,7 @@ Ohne eigene Dateien kannst du die App auch mit dem eingebauten **Beispielprojekt
 
 ## KI einrichten (optional)
 
-Für Planlesen, Erklärungen und Chat nutzt die App **kostenlose KI-Modelle über [OpenRouter](https://openrouter.ai)**.
+Für Planlesen, Erklärungen und Chat nutzt die App **kostenlose KI-Modelle über [OpenRouter](https://openrouter.ai)**. Jede Person braucht dafür ihren **eigenen** API-Key.
 
 1. Bei OpenRouter ein kostenloses Konto anlegen und einen API-Key erstellen.
 2. In der App unten in der Fußzeile auf die **KI-Statuszeile** klicken.
@@ -64,7 +70,8 @@ Die App ist eine reine **Browser-App** aus HTML, CSS und JavaScript. Sie hat kei
 ```
 ├── index.html            Startseite (leitet zur App weiter)
 ├── App-lokal-starten.bat startet die App lokal (localhost:8765)
-├── PLAN.md               ausführlicher Umsetzungsplan mit allen Entscheidungen
+├── PLAN.md               ursprünglicher Umsetzungsplan (Anfangsidee)
+├── docs/screenshots/     Screenshots der Live-Demo
 └── app/
     ├── index.html        Seite, Gestaltung, Intro, Mauszeiger
     ├── main.js           Oberfläche: Schritte, Formulare, Ergebnis, Chat, Meine Projekte
@@ -91,7 +98,39 @@ Die App ist eine reine **Browser-App** aus HTML, CSS und JavaScript. Sie hat kei
 - **Caro255**: Idee, Konzept, Gestaltung, Tests
 - Umsetzung mit Unterstützung von **Claude** (Anthropic) im Rahmen des Vibecoding-Kurses
 
-## Lizenz
+## Quellen, Lizenz und KI-Nutzung
 
-[MIT-Lizenz](LICENSE) · © 2026 Vibecoding KI-Werkstatt · Jade Hochschule
-Der Baustein `web-ifc.wasm` stammt aus [web-ifc](https://github.com/ThatOpen/engine_web-ifc) (MPL-2.0).
+### Daten und Rechengrundlagen
+| Thema | Quelle |
+|---|---|
+| Baustoffkennwerte | ÖKOBAUDAT (BMWSB) und EPD-Durchschnittswerte, gerundet |
+| Heiz-/Kühlgradtage | Eurostat nrg_chdd (langjähriges Mittel, gerundet) |
+| Sonneneinstrahlung | PVGIS, Europäische Kommission JRC (gerundet) |
+| Strom-CO₂ je Land | Europäische Umweltagentur (EEA), Stand ca. 2023, gerundet |
+| Energie- und Baupreise | Eurostat (Haushaltspreise, Preisniveauindizes), gerundet |
+| Effizienzklassen | GEG Anlage 10 (Endenergie), als gemeinsame Skala für alle Länder |
+| Zielwerte | Passivhaus Institut (≤ 15 kWh/m²a), RIBA 2030 Climate Challenge v2 (2021), EU Level(s) Indikator 1.2 mit Bändern nach Röck et al. (2020) |
+| Lebensphasen | EN 15978: A1–A3, B4, B6, C3–C4 |
+
+Alle Werte sind für die überschlägige Abschätzung vereinfacht und gerundet.
+
+### Bibliotheken und Schrift
+| Baustein | Zweck | Lizenz |
+|---|---|---|
+| [Tailwind CSS](https://tailwindcss.com) | Gestaltung | MIT |
+| [three.js](https://threejs.org) | 3D-Ansicht | MIT |
+| [web-ifc](https://github.com/ThatOpen/engine_web-ifc) (inkl. `web-ifc.wasm`) | IFC-Dateien lesen | MPL-2.0 |
+| [pdf.js](https://mozilla.github.io/pdf.js/) | PDF-Pläne in Bilder umwandeln | Apache-2.0 |
+| [jsPDF](https://github.com/parallax/jsPDF) | PDF-Bericht erzeugen | MIT |
+| [SheetJS](https://sheetjs.com) (Community Edition) | Maßnahmenliste als Excel | Apache-2.0 |
+| [Nunito](https://fonts.google.com/specimen/Nunito) | Schrift | SIL Open Font License 1.1 |
+| [Playwright](https://playwright.dev) | Screenshots (nicht Teil der App) | Apache-2.0 |
+
+### Lizenz
+Der Code dieses Projekts steht unter der [MIT-Lizenz](LICENSE) · © 2026 Vibecoding KI-Werkstatt · Jade Hochschule.
+
+### KI-Nutzung
+- **Entwicklung:** Konzept, Gestaltung und alle Entscheidungen stammen von Caro255. Den Programmcode hat **Claude** (Anthropic) über *Claude Code* nach diesen Vorgaben geschrieben, Schritt für Schritt erklärt und getestet.
+- **In der App:** Planlesen, Erklärungen der Vorschläge, Fazit und Projekt-Chat nutzen KI-Modelle. Das sind kostenlose Modelle über [OpenRouter](https://openrouter.ai) (Standard: Google Gemma 4) mit dem eigenen Key der Nutzerin bzw. des Nutzers, oder die eingebaute Claude-KI, wenn die App über claude.ai geöffnet wird.
+- **Die Berechnungen** (Energie, Ökobilanz, Maßnahmen) laufen ohne KI nach festen Formeln.
+- KI-Inhalte sind im PDF-Bericht gekennzeichnet. Sie sind ohne Gewähr und sollten fachlich geprüft werden.
