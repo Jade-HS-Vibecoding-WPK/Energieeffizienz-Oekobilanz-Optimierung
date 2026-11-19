@@ -273,8 +273,8 @@
   // KI-Einstellungen / OpenRouter
   Object.assign(T.de, {
     aiSettings: 'KI-Einstellungen', aiSetup: 'KI einrichten', aiProvider: 'KI-Anbieter', provAuto: 'automatisch (claude.ai, sonst OpenRouter)',
-    aiViaClaude: 'KI aktiv: claude.ai (eingebaut)', aiViaOr: 'KI aktiv: OpenRouter mit eigenem Key', aiNone: 'Keine KI aktiv – Formular funktioniert ohne KI.',
-    aiUnavailable: 'Keine KI verfügbar. Richte unter „KI-Einstellungen“ einen OpenRouter-Key ein (lokale Version) oder öffne die App über ihren claude.ai-Link. Das Formular funktioniert auch ohne KI.',
+    aiViaClaude: 'KI aktiv: claude.ai (eingebaut)', aiViaOr: 'KI aktiv: OpenRouter mit eigenem Key', aiNone: 'Keine KI aktiv – für KI-Funktionen eigenen OpenRouter-Key eintragen (hier klicken).',
+    aiUnavailable: 'Für die KI-Funktionen brauchst du deinen eigenen, kostenlosen OpenRouter-API-Key. Trage ihn unter „KI einrichten“ ein – er wird nur in deinem Browser gespeichert. Alle anderen Funktionen der App gehen auch ohne KI.',
     orStep1: 'Bei OpenRouter anmelden und einen Key erstellen (für Gratis-Modelle ohne Guthaben):', orStep2: 'Gratis: „Kostenlose Modelle verwenden“ wählen und unter openrouter.ai/settings/privacy die Gratis-Modelle erlauben. Bezahlt: Guthaben aufladen und beim Key ein Ausgabenlimit setzen.', orStep3: 'Key unten einfügen, „Verbindung testen“, dann „Speichern“.',
     orKey: 'OpenRouter-API-Key', orKeySaved: 'gespeichert', orModelStrong: 'Modell zum Planlesen', orModelFast: 'Modell für Erklärungen & Chat',
     orPrivacy: 'Der Key wird nur in diesem Browser gespeichert (nicht in Projektdateien, nicht auf GitHub) und nur an openrouter.ai gesendet. Deine Pläne gehen zur Auswertung an OpenRouter und den gewählten KI-Anbieter.',
@@ -292,8 +292,8 @@
   });
   Object.assign(T.en, {
     aiSettings: 'AI settings', aiSetup: 'Set up AI', aiProvider: 'AI provider', provAuto: 'automatic (claude.ai, otherwise OpenRouter)',
-    aiViaClaude: 'AI active: claude.ai (built in)', aiViaOr: 'AI active: OpenRouter with your own key', aiNone: 'No AI active – the form works without AI.',
-    aiUnavailable: 'No AI available. Add an OpenRouter key under “AI settings” (local version) or open the app via its claude.ai link. The form works without AI.',
+    aiViaClaude: 'AI active: claude.ai (built in)', aiViaOr: 'AI active: OpenRouter with your own key', aiNone: 'No AI active – add your own OpenRouter key for AI features (click here).',
+    aiUnavailable: 'AI features need your own free OpenRouter API key. Add it under “Set up AI” – it is stored only in your browser. Everything else in the app works without AI.',
     orStep1: 'Sign in to OpenRouter and create a key (no credit needed for free models):', orStep2: 'Free: choose “Use free models” and allow free endpoints at openrouter.ai/settings/privacy. Paid: add credit and set a spending limit on the key.', orStep3: 'Paste the key below, “Test connection”, then “Save”.',
     orKey: 'OpenRouter API key', orKeySaved: 'saved', orModelStrong: 'Model for reading plans', orModelFast: 'Model for explanations & chat',
     orPrivacy: 'The key is stored only in this browser (not in project files, not on GitHub) and sent only to openrouter.ai. Your plans are sent to OpenRouter and the chosen AI provider for analysis.',

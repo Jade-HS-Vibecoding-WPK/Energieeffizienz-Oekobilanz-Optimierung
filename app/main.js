@@ -84,14 +84,13 @@
   function aiStatusText() {
     const p = aiProvider();
     if (p === 'claude') return t('aiViaClaude');
-    if (p === 'openrouter' && OR.usingGroup) return I.lang === 'en' ? 'AI: group access (free models) – no key needed' : 'KI: Gruppen-Zugang (kostenlose Modelle) – kein eigener Key nötig';
     if (p === 'openrouter') return t('aiViaOr') + ' · ' + OR.cfg.strong + ' / ' + OR.cfg.fast;
     return t('aiNone');
   }
   function maskKey(k) { return k ? k.slice(0, 8) + '…' + k.slice(-4) : ''; }
   function modelOptions(sel) {
     const list = App.orModels && App.orModels.length ? App.orModels
-      : [OR.FREE.strong, OR.FREE.fast, OR.DEFAULTS.strong, OR.DEFAULTS.fast].map(id => ({ id, name: id, free: OR.isFree(id) }));
+      : [...new Set([OR.FREE.strong, OR.FREE.fast, OR.DEFAULTS.strong, OR.DEFAULTS.fast])].map(id => ({ id, name: id, free: OR.isFree(id) }));
     const ids = list.map(m => m.id);
     const extra = ids.includes(sel) ? [] : [{ id: sel, name: sel, free: OR.isFree(sel) }];
     const free = I.lang === 'en' ? 'free' : 'kostenlos';
@@ -110,6 +109,7 @@
         <option value="auto" ${prov === 'auto' ? 'selected' : ''}>${t('provAuto')}</option>
         <option value="openrouter" ${prov === 'openrouter' ? 'selected' : ''}>OpenRouter</option>
         <option value="claude" ${prov === 'claude' ? 'selected' : ''}>claude.ai</option></select></label>
+      <div class="banner"><span class="small">${icon('info', 14)} ${L ? 'Each user needs their <b>own free OpenRouter API key</b> to use the AI features. The key is stored only in this browser – it is never shared or uploaded.' : 'Für die KI-Funktionen braucht jede Person einen <b>eigenen, kostenlosen OpenRouter-API-Key</b>. Der Key wird nur in diesem Browser gespeichert – er wird nicht weitergegeben und nicht hochgeladen.'}</span></div>
       <h4>OpenRouter</h4>
       <ol class="small" style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:3px">
         <li>${t('orStep1')} <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">openrouter.ai/keys</a></li>
