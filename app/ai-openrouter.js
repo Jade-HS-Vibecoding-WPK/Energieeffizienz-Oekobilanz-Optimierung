@@ -5,6 +5,11 @@
 (function () {
   'use strict';
   const API = 'https://openrouter.ai/api/v1';
+  // Gruppen-Zugang: Adresse des KI-Vermittlers (Cloudflare Worker, siehe Ordner ki-vermittler/).
+  // Ist sie eingetragen, können alle Besucher die KI ohne eigenen Key nutzen (nur kostenlose Modelle).
+  // Ein eigener Key in den KI-Einstellungen hat immer Vorrang.
+  const GROUP_PROXY = 'https://greenprint-ki.carolin-willenborg.workers.dev';
+  const useGroup = () => !cfg.key && !!GROUP_PROXY;
   const KEYS = { key: 'obc_or_key', strong: 'obc_or_model', fast: 'obc_or_model_fast', provider: 'obc_ai_provider' };
   const DEFAULTS = { strong: 'anthropic/claude-opus-5.5', fast: 'anthropic/claude-sonnet-5.5' };
   // Kostenlose Modelle mit Bild-Eingabe (Stand 11/2026)
@@ -58,9 +63,10 @@
 
   async function sample(input, opts) {
     opts = opts || {};
-    const key = cfg.key;
-    if (!key) throw err('no_key');
-    const model = opts.modelTier === 'complex' ? cfg.strong : cfg.fast;
+    const key = cfg.key, group = useGroup();
+    if (!key && !group) throw err('no_key');
+    // Gruppen-Zugang: immer die kostenlosen Modelle
+    const model = group ? (opts.modelTier === 'complex' ? FREE.strong : FREE.fast) : (opts.modelTier === 'complex' ? cfg.strong : cfg.fast);
     let messages = typeof input === 'string' ? [{ role: 'user', content: input }] : input.map(m => ({ role: m.role, content: m.content }));
     const imgs = opts.images ? Array.from(opts.images).slice(0, isFree(model) ? MAX_IMAGES_FREE : MAX_IMAGES) : [];
     if (imgs.length) {
@@ -79,9 +85,10 @@
       try {
         const body = { model, messages, stream: true, temperature: opts.jsonMode ? 0.1 : 0.4, max_tokens: maxTokens };
         if (fallbacks) body.models = fallbacks;
-        res = await fetch(API + '/chat/completions', {
-          method: 'POST', signal: opts.signal,
-          headers: { 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json', 'X-Title': 'Greenprint' },
+        const headers = { 'Content-Type': 'application/json', 'X-Title': 'Greenprint' };
+        if (!group) headers.Authorization = 'Bearer ' + key; // beim Gruppen-Zugang hängt der Vermittler den Key an
+        res = await fetch((group ? GROUP_PROXY.replace(/\/+$/, '') : API) + '/chat/completions', {
+          method: 'POST', signal: opts.signal, headers,
           body: JSON.stringify(body),
         });
       } catch (e) {
@@ -177,5 +184,5 @@
   // claude.ai blockiert Verbindungen zu fremden Servern
   const inArtifact = () => /claude\.ai$|claudeusercontent|claude\.site/i.test(location.hostname) || !!window.claude;
 
-  window.OBC_OPENROUTER = { sample, cfg, DEFAULTS, FREE, isFree, checkKey, visionModels, inArtifact, get hasKey() { return !!cfg.key; } };
+  window.OBC_OPENROUTER = { sample, cfg, DEFAULTS, FREE, isFree, checkKey, visionModels, inArtifact, get hasKey() { return !!cfg.key || !!GROUP_PROXY; }, get usingGroup() { return useGroup(); }, groupProxy: GROUP_PROXY };
 })();

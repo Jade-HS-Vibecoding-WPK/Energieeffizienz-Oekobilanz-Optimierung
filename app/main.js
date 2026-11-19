@@ -84,6 +84,7 @@
   function aiStatusText() {
     const p = aiProvider();
     if (p === 'claude') return t('aiViaClaude');
+    if (p === 'openrouter' && OR.usingGroup) return I.lang === 'en' ? 'AI: group access (free models) – no key needed' : 'KI: Gruppen-Zugang (kostenlose Modelle) – kein eigener Key nötig';
     if (p === 'openrouter') return t('aiViaOr') + ' · ' + OR.cfg.strong + ' / ' + OR.cfg.fast;
     return t('aiNone');
   }
